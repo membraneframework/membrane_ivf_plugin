@@ -1,4 +1,4 @@
-defmodule Membrane.Template.Mixfile do
+defmodule Membrane.Element.IVF.MixProject do
   use Mix.Project
 
   @version "0.1.0"
