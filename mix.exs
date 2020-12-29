@@ -36,7 +36,7 @@ defmodule Membrane.Element.IVF.MixProject do
 
   defp deps do
     [
-      {:membrane_core, "~> 0.6.0"},
+      {:membrane_core, "~> 0.6.1"},
       {:ex_doc, "~> 0.22", only: :dev, runtime: false},
       {:dialyxir, "~> 1.0.0", only: :dev, runtime: false},
       {:credo, "~> 1.4", only: :dev, runtime: false},

@@ -3,7 +3,6 @@ defmodule Membrane.Element.IVF.VP9 do
   use Membrane.Filter
   use Membrane.Log
 
-  use Ratio
   alias Membrane.{Buffer, Time, RemoteStream}
   alias Membrane.Caps.VP9
 
@@ -17,6 +16,8 @@ defmodule Membrane.Element.IVF.VP9 do
     demand_unit: :buffers
 
   def_output_pad :output, caps: :any
+
+  use Ratio
 
   defmodule State do
     @moduledoc false
