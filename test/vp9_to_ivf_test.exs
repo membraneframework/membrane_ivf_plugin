@@ -17,10 +17,10 @@ defmodule Membrane.Element.IVF.VP9Test do
     vp9_buffer_1 = %Buffer{payload: @vp9_frame, metadata: %{timestamp: 0}}
     vp9_buffer_2 = %Buffer{payload: @vp9_frame, metadata: %{timestamp: 100_000_000 <|> 3}}
 
-    {:ok, ivf_element_state} = IVF.VP9.handle_init(%IVF.VP9{width: 1080, height: 720, rate: 30})
+    {:ok, ivf_element_state} = IVF.handle_init(%IVF{width: 1080, height: 720, rate: 30})
 
     {{:ok, buffer: {:output, ivf_buffer}, redemand: :output}, ivf_element_state} =
-      IVF.VP9.handle_process(:input, vp9_buffer_1, nil, ivf_element_state)
+      IVF.handle_process(:input, vp9_buffer_1, nil, ivf_element_state)
 
     <<file_header::binary-size(32), frame_header::binary-size(12), vp9_frame::binary()>> =
       ivf_buffer.payload
@@ -46,7 +46,7 @@ defmodule Membrane.Element.IVF.VP9Test do
     assert String.reverse(timestamp) == <<0::64>>
 
     {{:ok, buffer: {:output, ivf_buffer}, redemand: :output}, ivf_element_state} =
-      IVF.VP9.handle_process(:input, vp9_buffer_2, nil, ivf_element_state)
+      IVF.handle_process(:input, vp9_buffer_2, nil, ivf_element_state)
 
     <<frame_header::binary-size(12), vp9_frame::binary()>> = ivf_buffer.payload
     <<size_of_frame::binary-size(4), timestamp::binary-size(8)>> = frame_header
