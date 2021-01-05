@@ -1,4 +1,4 @@
-defmodule Membrane.Element.IVF do
+defmodule Membrane.Element.IVF.Serializer do
   @moduledoc false
   use Membrane.Filter
   use Membrane.Log
@@ -20,12 +20,13 @@ defmodule Membrane.Element.IVF do
 
   defmodule State do
     @moduledoc false
-    defstruct [:width, :height, :timebase, framecount: 0, header_sent?: false]
+    defstruct [:width, :height, :timebase]
   end
 
   @impl true
   def handle_init(options) do
     use Ratio
+
     {:ok,
      %State{
        width: options.width,
@@ -42,29 +43,27 @@ defmodule Membrane.Element.IVF do
   @impl true
   def handle_process(
         :input,
-        %Buffer{payload: vp9_frame, metadata: %{timestamp: timestamp}} = buffer,
+        buffer,
         ctx,
-        %State{header_sent?: false} = state
+        state
       ) do
-        IO.inspect(ctx)
+    %Buffer{payload: vp9_frame, metadata: %{timestamp: timestamp}} = buffer
+
     ivf_frame =
-      IVF.Writter.create_ivf_header(state.width, state.height, state.timebase, :VP9) <>
-        IVF.Writter.create_ivf_frame_header(byte_size(vp9_frame), timestamp, state.timebase) <> vp9_frame
+      IVF.Headers.create_ivf_frame_header(byte_size(vp9_frame), timestamp, state.timebase) <>
+        vp9_frame
 
-    {{:ok, buffer: {:output, %Buffer{buffer | payload: ivf_frame}}, redemand: :output},
-     %State{state | header_sent?: true}}
-  end
+    ivf_file_header =
+      if timestamp == 0,
+        do:
+          IVF.Headers.create_ivf_header(
+            state.width,
+            state.height,
+            state.timebase,
+            ctx.pads.input.caps
+          )
 
-  @impl true
-  def handle_process(
-        :input,
-        %Buffer{payload: vp9_frame, metadata: %{timestamp: timestamp}} = buffer,
-        _ctx,
-        %State{header_sent?: true} = state
-      ) do
-    ivf_frame =
-      IVF.Writter.create_ivf_frame_header(byte_size(vp9_frame), timestamp, state.timebase) <> vp9_frame
-
-    {{:ok, buffer: {:output, %Buffer{buffer | payload: ivf_frame}}, redemand: :output}, state}
+    ivf_buffer = (ivf_file_header || "") <> ivf_frame
+    {{:ok, buffer: {:output, %Buffer{buffer | payload: ivf_buffer}}, redemand: :output}, state}
   end
 end
