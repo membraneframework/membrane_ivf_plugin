@@ -1,4 +1,4 @@
-defmodule Membrane.Element.IVF.VP9 do
+defmodule Membrane.Element.IVF.Serializer do
   @moduledoc false
   use Membrane.Filter
   use Membrane.Log
@@ -17,15 +17,15 @@ defmodule Membrane.Element.IVF.VP9 do
 
   def_output_pad :output, caps: :any
 
-  use Ratio
-
   defmodule State do
     @moduledoc false
-    defstruct [:width, :height, :timebase, framecount: 0, header_sent?: false]
+    defstruct [:width, :height, :timebase, header_sent?: false]
   end
 
   @impl true
   def handle_init(options) do
+    use Ratio
+
     {:ok,
      %State{
        width: options.width,
@@ -42,10 +42,12 @@ defmodule Membrane.Element.IVF.VP9 do
   @impl true
   def handle_process(
         :input,
-        %Buffer{payload: vp9_frame, metadata: %{timestamp: timestamp}} = buffer,
+        buffer,
         _ctx,
         %State{header_sent?: false} = state
       ) do
+    %Buffer{payload: vp9_frame, metadata: %{timestamp: timestamp}} = buffer
+
     ivf_frame =
       create_ivf_header(state.width, state.height, state.timebase) <>
         create_ivf_frame_header(byte_size(vp9_frame), timestamp, state.timebase) <> vp9_frame
@@ -57,10 +59,12 @@ defmodule Membrane.Element.IVF.VP9 do
   @impl true
   def handle_process(
         :input,
-        %Buffer{payload: vp9_frame, metadata: %{timestamp: timestamp}} = buffer,
+        buffer,
         _ctx,
         %State{header_sent?: true} = state
       ) do
+    %Buffer{payload: vp9_frame, metadata: %{timestamp: timestamp}} = buffer
+
     ivf_frame =
       create_ivf_frame_header(byte_size(vp9_frame), timestamp, state.timebase) <> vp9_frame
 
@@ -76,10 +80,12 @@ defmodule Membrane.Element.IVF.VP9 do
   # calculating ivf timestamp from membrane timestamp(timebase for membrane timestamp is nanosecod, and timebase for ivf is passed in options)
 
   defp create_ivf_frame_header(size, timestamp, timebase) do
+    use Ratio
+
     ivf_timestamp = timestamp / (timebase * Time.second())
     # conversion to little-endian binary stirngs
-    size_le = String.reverse(<<size::32>>)
-    timestamp_le = String.reverse(<<Ratio.floor(ivf_timestamp)::64>>)
+    size_le = <<size::32-little>>
+    timestamp_le = <<Ratio.floor(ivf_timestamp)::64-little>>
 
     size_le <> timestamp_le
   end
@@ -100,15 +106,15 @@ defmodule Membrane.Element.IVF.VP9 do
     %Ratio{denominator: rate, numerator: scale} = timebase
 
     signature = "DKIF"
-    version = <<0, 0>>
+    version = <<0::16>>
     # note it's little endian
-    length_of_header = <<32, 0>>
+    length_of_header = <<32::16-little>>
     codec_four_cc = "VP90"
     # conversion to little-endian binary stirngs
-    width_le = String.reverse(<<width::16>>)
-    height_le = String.reverse(<<height::16>>)
-    rate_le = String.reverse(<<rate::32>>)
-    scale_le = String.reverse(<<scale::32>>)
+    width_le = <<width::16-little>>
+    height_le = <<height::16-little>>
+    rate_le = <<rate::32-little>>
+    scale_le = <<scale::32-little>>
 
     # field is not used so we set it's value to 0
     frame_count = <<0::32>>
