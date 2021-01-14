@@ -6,7 +6,7 @@ defmodule Membrane.Element.IVF.MixProject do
 
   def project do
     [
-      app: :membrane_element_ivf,
+      app: :membrane_ivf_plugin,
       version: @version,
       elixir: "~> 1.10",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -36,10 +36,12 @@ defmodule Membrane.Element.IVF.MixProject do
 
   defp deps do
     [
-      {:membrane_core, github: "membraneframework/membrane_core", branch: :remote_stream},
+      {:membrane_core,
+       github: "membraneframework/membrane_core", branch: :remote_stream, override: true},
       {:ex_doc, "~> 0.22", only: :dev, runtime: false},
       {:dialyxir, "~> 1.0.0", only: :dev, runtime: false},
       {:credo, "~> 1.4", only: :dev, runtime: false},
+      {:membrane_file_plugin, "~> 0.5.0", only: :test},
       {:membrane_remote_stream_format, "~> 0.1.0"}
     ]
   end

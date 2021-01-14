@@ -1,4 +1,4 @@
-defmodule Membrane.Element.IVF.VP9Test do
+defmodule Membrane.Element.IVF.SerializerTest do
   use ExUnit.Case
   use Ratio
 
