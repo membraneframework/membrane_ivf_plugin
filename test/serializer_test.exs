@@ -8,11 +8,19 @@ defmodule Membrane.Element.IVF.VP9Test do
   alias Membrane.Element.IVF
   alias Membrane.Caps.VP9
 
+  @fixtures_dir "./test/fixtures/"
+  @results_dir "./test/results/"
+
   defmodule TestPipeline do
     use Membrane.Pipeline
 
     @impl true
     def handle_init(options) do
+      sink =
+        if options.to_file?,
+          do: %Membrane.File.Sink{location: options.result_file},
+          else: Testing.Sink
+
       spec = %ParentSpec{
         children: [
           ivf_serializer: %IVF.Serializer{width: 1080, height: 720, rate: 30},
@@ -20,7 +28,7 @@ defmodule Membrane.Element.IVF.VP9Test do
             output: Testing.Source.output_from_buffers(options.buffers),
             caps: %RemoteStream{content_format: VP9, type: :packetized}
           },
-          sink: Testing.Sink
+          sink: sink
         ],
         links: [
           link(:source) |> to(:ivf_serializer) |> to(:sink)
@@ -52,6 +60,7 @@ defmodule Membrane.Element.IVF.VP9Test do
       %Testing.Pipeline.Options{
         module: TestPipeline,
         custom_args: %{
+          to_file?: false,
           buffers: [vp9_buffer_1, vp9_buffer_2]
         }
       }
@@ -100,5 +109,30 @@ defmodule Membrane.Element.IVF.VP9Test do
     assert timestamp == <<1::64-little>>
 
     assert_end_of_stream(pipeline, :sink)
+  end
+
+  test "serialize real vp9 buffers" do
+    buffers = File.read!(@fixtures_dir <> "capture.dump") |> :erlang.binary_to_term()
+
+    {:ok, pipeline} =
+      %Testing.Pipeline.Options{
+        module: TestPipeline,
+        custom_args: %{
+          to_file?: true,
+          result_file: @results_dir <> "result.ivf",
+          buffers: buffers
+        }
+      }
+      |> Testing.Pipeline.start_link()
+
+    Testing.Pipeline.play(pipeline)
+    assert_pipeline_playback_changed(pipeline, _, :playing)
+
+    assert_start_of_stream(pipeline, :sink)
+
+    assert_end_of_stream(pipeline, :sink)
+
+    assert File.read!(@results_dir <> "result.ivf") ==
+             File.read!(@fixtures_dir <> "input_vp9.ivf")
   end
 end
