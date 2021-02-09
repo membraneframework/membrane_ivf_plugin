@@ -5,6 +5,7 @@ defmodule Membrane.Element.IVF.Headers do
 
   alias Membrane.Time
   alias Membrane.Caps.VP9
+  alias Membrane.Caps.VP8
   # IVF Frame Header:
   # bytes 0-3    size of frame in bytes (not including the 12-byte header)
   # bytes 4-11   64-bit presentation timestamp
@@ -40,7 +41,7 @@ defmodule Membrane.Element.IVF.Headers do
     codec_four_cc =
       case caps do
         %Membrane.RemoteStream{content_format: VP9} -> "VP90"
-        %Membrane.RemoteStream{content_format: :VP8} -> "VP80"
+        %Membrane.RemoteStream{content_format: VP8} -> "VP80"
         _unknown -> "\0\0\0\0"
       end
 

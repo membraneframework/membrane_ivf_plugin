@@ -45,23 +45,23 @@ defmodule Membrane.Element.IVF.VP9Test do
   end
 
   # example vp9 frame - just a random bitstring
-  @vp9_frame <<128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
-               128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128>>
+  @frame <<128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+           128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128>>
 
   @doc """
   This test checks if ivf element correctly prepares file header and
   correctly calculates timestamp in frame header.
   """
   test "appends headers correctly" do
-    vp9_buffer_1 = %Buffer{payload: @vp9_frame, metadata: %{timestamp: 0}}
-    vp9_buffer_2 = %Buffer{payload: @vp9_frame, metadata: %{timestamp: 100_000_000 <|> 3}}
+    buffer_1 = %Buffer{payload: @frame, metadata: %{timestamp: 0}}
+    buffer_2 = %Buffer{payload: @frame, metadata: %{timestamp: 100_000_000 <|> 3}}
 
     {:ok, pipeline} =
       %Testing.Pipeline.Options{
         module: TestPipeline,
         custom_args: %{
           to_file?: false,
-          buffers: [vp9_buffer_1, vp9_buffer_2]
+          buffers: [buffer_1, buffer_2]
         }
       }
       |> Testing.Pipeline.start_link()
@@ -73,7 +73,7 @@ defmodule Membrane.Element.IVF.VP9Test do
 
     assert_sink_buffer(pipeline, :sink, ivf_buffer)
 
-    <<file_header::binary-size(32), frame_header::binary-size(12), vp9_frame::binary()>> =
+    <<file_header::binary-size(32), frame_header::binary-size(12), frame::binary()>> =
       ivf_buffer.payload
 
     <<signature::binary-size(4), version::binary-size(2), length_of_header::binary-size(2),
@@ -92,15 +92,15 @@ defmodule Membrane.Element.IVF.VP9Test do
     assert number_of_frames == <<0::32-little>>
 
     <<size_of_frame::binary-size(4), timestamp::binary-size(8)>> = frame_header
-    assert size_of_frame == <<byte_size(@vp9_frame)::32-little>>
+    assert size_of_frame == <<byte_size(@frame)::32-little>>
     assert timestamp == <<0::64>>
 
     assert_sink_buffer(pipeline, :sink, ivf_buffer)
 
-    <<frame_header::binary-size(12), vp9_frame::binary()>> = ivf_buffer.payload
+    <<frame_header::binary-size(12), frame::binary()>> = ivf_buffer.payload
     <<size_of_frame::binary-size(4), timestamp::binary-size(8)>> = frame_header
 
-    assert size_of_frame == <<byte_size(@vp9_frame)::32-little>>
+    assert size_of_frame == <<byte_size(@frame)::32-little>>
 
     # timestamp equal to 1 is expected because buffer timestamp is 10^8/3
     # and ivf timebase is 1/30:
