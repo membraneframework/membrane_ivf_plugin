@@ -6,6 +6,7 @@ defmodule Membrane.Element.IVF.Serializer do
   alias Membrane.Element.IVF
   alias Membrane.{Buffer, RemoteStream}
   alias Membrane.Caps.VP9
+  alias Membrane.Caps.VP8
 
   def_options width: [spec: [integer], description: "width of frame"],
               height: [spec: [integer], description: "height of frame"],
@@ -13,7 +14,7 @@ defmodule Membrane.Element.IVF.Serializer do
               rate: [spec: [integer], default: 1_000_000, description: "rate"]
 
   def_input_pad :input,
-    caps: {RemoteStream, content_format: one_of([VP9, :VP8]), type: :packetized},
+    caps: {RemoteStream, content_format: one_of([VP9, VP8]), type: :packetized},
     demand_unit: :buffers
 
   def_output_pad :output, caps: :any
@@ -47,11 +48,11 @@ defmodule Membrane.Element.IVF.Serializer do
         ctx,
         state
       ) do
-    %Buffer{payload: vp9_frame, metadata: %{timestamp: timestamp}} = buffer
+    %Buffer{payload: frame, metadata: %{timestamp: timestamp}} = buffer
 
     ivf_frame =
-      IVF.Headers.create_ivf_frame_header(byte_size(vp9_frame), timestamp, state.timebase) <>
-        vp9_frame
+      IVF.Headers.create_ivf_frame_header(byte_size(frame), timestamp, state.timebase) <>
+        frame
 
     ivf_file_header =
       if timestamp == 0,

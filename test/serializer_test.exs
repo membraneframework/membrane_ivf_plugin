@@ -8,11 +8,19 @@ defmodule Membrane.Element.IVF.SerializerTest do
   alias Membrane.Element.IVF
   alias Membrane.Caps.VP9
 
+  @fixtures_dir "./test/fixtures/"
+  @results_dir "./test/results/"
+
   defmodule TestPipeline do
     use Membrane.Pipeline
 
     @impl true
     def handle_init(options) do
+      sink =
+        if options.to_file?,
+          do: %Membrane.File.Sink{location: options.result_file},
+          else: Testing.Sink
+
       spec = %ParentSpec{
         children: [
           ivf_serializer: %IVF.Serializer{width: 1080, height: 720, rate: 30},
@@ -20,7 +28,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
             output: Testing.Source.output_from_buffers(options.buffers),
             caps: %RemoteStream{content_format: VP9, type: :packetized}
           },
-          sink: Testing.Sink
+          sink: sink
         ],
         links: [
           link(:source) |> to(:ivf_serializer) |> to(:sink)
@@ -37,22 +45,23 @@ defmodule Membrane.Element.IVF.SerializerTest do
   end
 
   # example vp9 frame - just a random bitstring
-  @vp9_frame <<128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
-               128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128>>
+  @frame <<128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+           128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128>>
 
   @doc """
   This test checks if ivf element correctly prepares file header and
   correctly calculates timestamp in frame header.
   """
   test "appends headers correctly" do
-    vp9_buffer_1 = %Buffer{payload: @vp9_frame, metadata: %{timestamp: 0}}
-    vp9_buffer_2 = %Buffer{payload: @vp9_frame, metadata: %{timestamp: 100_000_000 <|> 3}}
+    buffer_1 = %Buffer{payload: @frame, metadata: %{timestamp: 0}}
+    buffer_2 = %Buffer{payload: @frame, metadata: %{timestamp: 100_000_000 <|> 3}}
 
     {:ok, pipeline} =
       %Testing.Pipeline.Options{
         module: TestPipeline,
         custom_args: %{
-          buffers: [vp9_buffer_1, vp9_buffer_2]
+          to_file?: false,
+          buffers: [buffer_1, buffer_2]
         }
       }
       |> Testing.Pipeline.start_link()
@@ -64,7 +73,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
     assert_sink_buffer(pipeline, :sink, ivf_buffer)
 
-    <<file_header::binary-size(32), frame_header::binary-size(12), vp9_frame::binary()>> =
+    <<file_header::binary-size(32), frame_header::binary-size(12), frame::binary()>> =
       ivf_buffer.payload
 
     <<signature::binary-size(4), version::binary-size(2), length_of_header::binary-size(2),
@@ -83,15 +92,15 @@ defmodule Membrane.Element.IVF.SerializerTest do
     assert number_of_frames == <<0::32-little>>
 
     <<size_of_frame::binary-size(4), timestamp::binary-size(8)>> = frame_header
-    assert size_of_frame == <<byte_size(@vp9_frame)::32-little>>
+    assert size_of_frame == <<byte_size(@frame)::32-little>>
     assert timestamp == <<0::64>>
 
     assert_sink_buffer(pipeline, :sink, ivf_buffer)
 
-    <<frame_header::binary-size(12), vp9_frame::binary()>> = ivf_buffer.payload
+    <<frame_header::binary-size(12), frame::binary()>> = ivf_buffer.payload
     <<size_of_frame::binary-size(4), timestamp::binary-size(8)>> = frame_header
 
-    assert size_of_frame == <<byte_size(@vp9_frame)::32-little>>
+    assert size_of_frame == <<byte_size(@frame)::32-little>>
 
     # timestamp equal to 1 is expected because buffer timestamp is 10^8/3
     # and ivf timebase is 1/30:
@@ -100,5 +109,30 @@ defmodule Membrane.Element.IVF.SerializerTest do
     assert timestamp == <<1::64-little>>
 
     assert_end_of_stream(pipeline, :sink)
+  end
+
+  test "serialize real vp9 buffers" do
+    buffers = File.read!(@fixtures_dir <> "capture.dump") |> :erlang.binary_to_term()
+
+    {:ok, pipeline} =
+      %Testing.Pipeline.Options{
+        module: TestPipeline,
+        custom_args: %{
+          to_file?: true,
+          result_file: @results_dir <> "result.ivf",
+          buffers: buffers
+        }
+      }
+      |> Testing.Pipeline.start_link()
+
+    Testing.Pipeline.play(pipeline)
+    assert_pipeline_playback_changed(pipeline, _, :playing)
+
+    assert_start_of_stream(pipeline, :sink)
+
+    assert_end_of_stream(pipeline, :sink)
+
+    assert File.read!(@results_dir <> "result.ivf") ==
+             File.read!(@fixtures_dir <> "input_vp9.ivf")
   end
 end

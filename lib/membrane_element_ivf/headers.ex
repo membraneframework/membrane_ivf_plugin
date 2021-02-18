@@ -4,7 +4,7 @@ defmodule Membrane.Element.IVF.Headers do
   use Ratio
 
   alias Membrane.Time
-  alias Membrane.Caps.VP9
+  alias Membrane.Caps.{VP9, VP8}
 
   defmodule FileHeader do
     @moduledoc """
@@ -81,7 +81,7 @@ defmodule Membrane.Element.IVF.Headers do
     codec_four_cc =
       case caps do
         %Membrane.RemoteStream{content_format: VP9} -> "VP90"
-        %Membrane.RemoteStream{content_format: :VP8} -> "VP80"
+        %Membrane.RemoteStream{content_format: VP8} -> "VP80"
         _unknown -> "\0\0\0\0"
       end
 
