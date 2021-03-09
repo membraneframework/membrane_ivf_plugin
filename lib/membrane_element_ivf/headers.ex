@@ -47,28 +47,10 @@ defmodule Membrane.Element.IVF.Headers do
 
     %Ratio{denominator: rate, numerator: scale} = timebase
 
-    signature = "DKIF"
-    version = <<0, 0>>
-    length_of_header = <<32, 0>>
-    # conversion to little-endian binary stirngs
-    width_le = <<width::16-little>>
-    height_le = <<height::16-little>>
-    rate_le = <<rate::32-little>>
-    scale_le = <<scale::32-little>>
-
-    # field is not used so it is set to 0
-    frame_count = <<0::32>>
-    unused = <<0::32>>
-
-    signature <>
-      version <>
-      length_of_header <>
-      codec_four_cc <>
-      width_le <>
-      height_le <>
-      rate_le <>
-      scale_le <>
-      frame_count <>
-      unused
+    version = 0
+    length_of_header = 32
+    # frame count is not used so it is set to 0
+    frame_count = 0
+    <<"DKIF", version::16-little, length_of_header::16-little, codec_four_cc::binary, width::16-little, height::16-little, rate::32-little, scale::32-little, frame_count::32-little, 0::32-little>>
   end
 end
