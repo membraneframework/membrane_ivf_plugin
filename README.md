@@ -14,7 +14,7 @@ The package can be installed by adding `membrane_element_ivf` to your list of de
 ```elixir
 def deps do
   [
-    {:membrane_element_ivf, "~> 0.1.0"}
+    {:membrane_ivf_plugin, "~> 0.1.0"}
   ]
 end
 ```
