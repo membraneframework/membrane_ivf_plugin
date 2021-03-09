@@ -4,8 +4,8 @@ defmodule Membrane.Element.IVF.Headers do
   use Ratio
 
   alias Membrane.Time
-  alias Membrane.Caps.VP9
-  alias Membrane.Caps.VP8
+  alias Membrane.VP9
+  alias Membrane.VP8
   # IVF Frame Header:
   # bytes 0-3    size of frame in bytes (not including the 12-byte header)
   # bytes 4-11   64-bit presentation timestamp
@@ -51,6 +51,9 @@ defmodule Membrane.Element.IVF.Headers do
     length_of_header = 32
     # frame count is not used so it is set to 0
     frame_count = 0
-    <<"DKIF", version::16-little, length_of_header::16-little, codec_four_cc::binary, width::16-little, height::16-little, rate::32-little, scale::32-little, frame_count::32-little, 0::32-little>>
+
+    <<"DKIF", version::16-little, length_of_header::16-little, codec_four_cc::binary,
+      width::16-little, height::16-little, rate::32-little, scale::32-little,
+      frame_count::32-little, 0::32-little>>
   end
 end

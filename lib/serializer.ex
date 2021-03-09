@@ -5,13 +5,13 @@ defmodule Membrane.Element.IVF.Serializer do
 
   alias Membrane.Element.IVF
   alias Membrane.{Buffer, RemoteStream}
-  alias Membrane.Caps.VP9
-  alias Membrane.Caps.VP8
+  alias Membrane.VP9
+  alias Membrane.VP8
 
-  def_options width: [spec: [integer], description: "width of frame"],
-              height: [spec: [integer], description: "height of frame"],
-              scale: [spec: [integer], default: 1, description: "scale"],
-              rate: [spec: [integer], default: 1_000_000, description: "rate"]
+  def_options width: [spec: integer, description: "width of frame"],
+              height: [spec: integer, description: "height of frame"],
+              scale: [spec: integer, default: 1, description: "scale"],
+              rate: [spec: integer, default: 1_000_000, description: "rate"]
 
   def_input_pad :input,
     caps: {RemoteStream, content_format: one_of([VP9, VP8]), type: :packetized},
@@ -42,12 +42,7 @@ defmodule Membrane.Element.IVF.Serializer do
   end
 
   @impl true
-  def handle_process(
-        :input,
-        buffer,
-        ctx,
-        state
-      ) do
+  def handle_process(:input, buffer, ctx, state) do
     %Buffer{payload: frame, metadata: %{timestamp: timestamp}} = buffer
 
     ivf_frame =

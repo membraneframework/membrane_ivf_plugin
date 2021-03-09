@@ -42,7 +42,9 @@ defmodule Membrane.Element.IVF.MixProject do
       {:dialyxir, "~> 1.0.0", only: :dev, runtime: false},
       {:credo, "~> 1.4", only: :dev, runtime: false},
       {:membrane_remote_stream_format, "~> 0.1.0"},
-      {:membrane_file_plugin, "~> 0.5.0", only: :test}
+      {:membrane_file_plugin, "~> 0.5.0", only: :test},
+      {:membrane_vp8_format, github: "/membraneframework/membrane_vp8_format"},
+      {:membrane_vp9_format, github: "/membraneframework/membrane_vp9_format"}
     ]
   end
 
