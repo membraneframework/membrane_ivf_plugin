@@ -1,22 +1,20 @@
 # Membrane Multimedia Framework: Template Plugin
 
-[![Hex.pm](https://img.shields.io/hexpm/v/membrane_template_plugin.svg)](https://hex.pm/packages/membrane_template_plugin)
-[![CircleCI](https://circleci.com/gh/membraneframework/membrane_template_plugin.svg?style=svg)](https://circleci.com/gh/membraneframework/membrane_template_plugin)
+[![Hex.pm](https://img.shields.io/hexpm/v/membrane-element-ivf.svg)](https://hex.pm/packages/membrane_element_ivf)
+[![CircleCI](https://circleci.com/gh/membraneframework/membrane-element-ivf.svg?style=svg)](https://circleci.com/gh/membraneframework/membrane-element-ivf)
 
-This repository contains a template for new elements.
-
-Check out different branches for other flavours of template.
+This repository contains a filter element for converting video stream into IVF format.
 
 It is part of [Membrane Multimedia Framework](https://membraneframework.org).
 
 ## Installation
 
-The package can be installed by adding `membrane_template_plugin` to your list of dependencies in `mix.exs`:
+The package can be installed by adding `membrane_element_ivf` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:membrane_template_plugin, "~> 0.1.0"}
+    {:membrane_ivf_plugin, "~> 0.1.0"}
   ]
 end
 ```
