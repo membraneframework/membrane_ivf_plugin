@@ -16,7 +16,7 @@ defmodule Membrane.Element.IVF.Deserializer do
   def_input_pad :input, caps: :any, demand_unit: :buffers
 
   def_output_pad :output,
-    caps: {RemoteStream, content_format: VP9, type: :packetized}
+    caps: {RemoteStream, content_format: one_of([VP9, VP8]), type: :packetized}
 
   defmodule State do
     @moduledoc false
@@ -40,7 +40,7 @@ defmodule Membrane.Element.IVF.Deserializer do
 
   @impl true
   def handle_prepared_to_playing(_ctx, state) do
-    caps = %RemoteStream{content_format: VP9, type: :packetized}
+    caps = %RemoteStream{content_format: one_of(VP9, VP8), type: :packetized}
     {{:ok, caps: {:output, caps}}, state}
   end
 
