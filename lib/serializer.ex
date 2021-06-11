@@ -1,5 +1,8 @@
 defmodule Membrane.Element.IVF.Serializer do
-  @moduledoc false
+  @moduledoc """
+  Serializes video stream into IVF format.
+  """
+
   use Membrane.Filter
   use Membrane.Log
 

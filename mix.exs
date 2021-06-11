@@ -1,12 +1,12 @@
-defmodule Membrane.Element.IVF.MixProject do
+defmodule Membrane.IVF.Plugin.MixProject do
   use Mix.Project
 
   @version "0.1.0"
-  @github_url "https://github.com/membraneframework/membrane-element-ivf"
+  @github_url "https://github.com/membraneframework/membrane_ivf_plugin"
 
   def project do
     [
-      app: :membrane_element_ivf,
+      app: :membrane_ivf_plugin,
       version: @version,
       elixir: "~> 1.10",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -14,11 +14,11 @@ defmodule Membrane.Element.IVF.MixProject do
       deps: deps(),
 
       # hex
-      description: "Membrane Multimedia Framework (IVF Element)",
+      description: "Membrane plugin for IVF container",
       package: package(),
 
       # docs
-      name: "Membrane Element: IVF",
+      name: "Membrane IVF Plugin",
       source_url: @github_url,
       homepage_url: "https://membraneframework.org",
       docs: docs()
@@ -36,15 +36,13 @@ defmodule Membrane.Element.IVF.MixProject do
 
   defp deps do
     [
-      {:membrane_core,
-       github: "membraneframework/membrane_core", branch: :remote_stream, override: true},
+      {:membrane_core, github: "membraneframework/membrane_core", override: true},
       {:ex_doc, "~> 0.22", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.0.0", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.1.0", only: :dev, runtime: false},
       {:credo, "~> 1.4", only: :dev, runtime: false},
-      {:membrane_remote_stream_format, "~> 0.1.0"},
       {:membrane_file_plugin, "~> 0.5.0", only: :test},
-      {:membrane_vp8_format, github: "membraneframework/membrane_vp8_format"},
-      {:membrane_vp9_format, github: "membraneframework/membrane_vp9_format"}
+      {:membrane_vp8_format, "~> 0.1.0", only: :test},
+      {:membrane_vp9_format, "~> 0.1.0", only: :test}
     ]
   end
 
@@ -64,7 +62,7 @@ defmodule Membrane.Element.IVF.MixProject do
       main: "readme",
       extras: ["README.md", "LICENSE"],
       source_ref: "v#{@version}",
-      nest_modules_by_prefix: [Membrane.Template]
+      nest_modules_by_prefix: [Membrane.IVF]
     ]
   end
 end
