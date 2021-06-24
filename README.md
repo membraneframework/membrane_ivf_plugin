@@ -1,6 +1,6 @@
 # Membrane IVF Plugin
 
-[![Hex.pm](https://img.shields.io/hexpm/v/membrane-element-ivf.svg)](https://hex.pm/packages/membrane_ivf_plugin)
+[![Hex.pm](https://img.shields.io/hexpm/v/membrane_ivf_plugin.svg)](https://hex.pm/packages/membrane_ivf_plugin)
 [![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/membrane_ivf_plugin/)
 [![CircleCI](https://circleci.com/gh/membraneframework/membrane_ivf_plugin.svg?style=svg)](https://circleci.com/gh/membraneframework/membrane_ivf_plugin)
 
