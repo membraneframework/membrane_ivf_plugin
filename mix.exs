@@ -36,13 +36,13 @@ defmodule Membrane.IVF.Plugin.MixProject do
 
   defp deps do
     [
-      {:membrane_core, github: "membraneframework/membrane_core", override: true},
-      {:ex_doc, "~> 0.22", only: :dev, runtime: false},
+      {:membrane_core, "~> 0.7.0"},
+      {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:dialyxir, "~> 1.1.0", only: :dev, runtime: false},
       {:credo, "~> 1.4", only: :dev, runtime: false},
-      {:membrane_file_plugin, "~> 0.5.0", only: :test},
-      {:membrane_vp8_format, "~> 0.1.0", only: :test},
-      {:membrane_vp9_format, "~> 0.1.0", only: :test}
+      {:membrane_file_plugin, "~> 0.6.0", only: :test},
+      {:membrane_vp8_format, "~> 0.2.0", only: :test},
+      {:membrane_vp9_format, "~> 0.2.0", only: :test}
     ]
   end
 
