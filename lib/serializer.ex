@@ -21,7 +21,7 @@ defmodule Membrane.Element.IVF.Serializer do
 
   defmodule State do
     @moduledoc false
-    defstruct [:width, :height, :timebase, :first_frame]
+    defstruct [:width, :height, :timebase, :first_frame, :frame_count]
   end
 
   @impl true

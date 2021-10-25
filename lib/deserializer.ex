@@ -39,7 +39,7 @@ defmodule Membrane.Element.IVF.Deserializer do
 
   @impl true
   def handle_prepared_to_playing(_ctx, state) do
-    caps = %RemoteStream{content_format: one_of([VP9, VP8]), type: :packetized}
+    caps = %RemoteStream{content_format: Membrane.Caps.Matcher.one_of([VP9, VP8]), type: :packetized}
     {{:ok, caps: {:output, caps}}, state}
   end
 
