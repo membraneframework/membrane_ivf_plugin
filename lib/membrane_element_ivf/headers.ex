@@ -4,7 +4,7 @@ defmodule Membrane.Element.IVF.Headers do
   use Ratio
 
   alias Membrane.Time
-  alias Membrane.Caps.{VP9, VP8}
+  alias Membrane.{VP9, VP8}
 
   defmodule FileHeader do
     @moduledoc """
@@ -53,12 +53,12 @@ defmodule Membrane.Element.IVF.Headers do
   # bytes 12..   frame data
 
   # Function firstly calculate
-  # calculating ivf timestamp from membrane timestamp(timebase for membrane timestamp is nanosecod, and timebase for ivf is passed in options)
+  # calculating ivf timestamp from membrane timestamp(timebase for membrane timestamp is nanosecond, and timebase for ivf is passed in options)
 
   @spec create_ivf_frame_header(integer, number | Ratio.t(), number | Ratio.t()) :: binary
   def create_ivf_frame_header(size, timestamp, timebase) do
     ivf_timestamp = timestamp / (timebase * Time.second())
-    # conversion to little-endian binary stirngs
+    # conversion to little-endian binary strings
     size_le = <<size::32-little>>
     timestamp_le = <<Ratio.floor(ivf_timestamp)::64-little>>
 
@@ -72,12 +72,12 @@ defmodule Membrane.Element.IVF.Headers do
   # bytes 8-11   codec FourCC (e.g., 'VP80')
   # bytes 12-13  width in pixels
   # bytes 14-15  height in pixels
-  # bytes 16-23  time base denominator (rate)
+  # bytes 16-19  time base denominator (rate)
   # bytes 20-23  time base numerator (scale)
   # bytes 24-27  number of frames in file
   # bytes 28-31  unused
-  @spec create_ivf_header(integer, integer, Ratio.t(), any) :: binary
-  def create_ivf_header(width, height, timebase, caps) do
+  @spec create_ivf_header(integer, integer, Ratio.t(), integer, any) :: binary
+  def create_ivf_header(width, height, timebase, frame_count, caps) do
     codec_four_cc =
       case caps do
         %Membrane.RemoteStream{content_format: VP9} -> "VP90"
@@ -95,9 +95,8 @@ defmodule Membrane.Element.IVF.Headers do
     height_le = <<height::16-little>>
     rate_le = <<rate::32-little>>
     scale_le = <<scale::32-little>>
-
+    frame_count = <<frame_count::32>>
     # field is not used so it is set to 0
-    frame_count = <<0::32>>
     unused = <<0::32>>
 
     signature <>

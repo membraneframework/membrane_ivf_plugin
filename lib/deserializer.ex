@@ -2,14 +2,13 @@ defmodule Membrane.Element.IVF.Deserializer do
   @moduledoc """
   Deserializer is capable of converting stream representing video in IVF format
   into stream of Membrane.Buffer's with video frames with correct timestamps in
-  Membrane timebase (it is 1 nanosecodn = 1/(10^9)[s])
+  Membrane timebase (it is 1 nanosecond = 1/(10^9)[s])
   """
   use Membrane.Filter
   use Ratio
 
-  alias Membrane.Time
-  alias Membrane.{RemoteStream, Buffer}
-  alias Membrane.Caps.VP9
+  alias Membrane.{Time, RemoteStream, Buffer}
+  alias Membrane.{VP9, VP8}
   alias Membrane.Element.IVF.Headers
   alias Membrane.Element.IVF.Headers.FrameHeader
 
@@ -40,7 +39,7 @@ defmodule Membrane.Element.IVF.Deserializer do
 
   @impl true
   def handle_prepared_to_playing(_ctx, state) do
-    caps = %RemoteStream{content_format: one_of(VP9, VP8), type: :packetized}
+    caps = %RemoteStream{content_format: one_of([VP9, VP8]), type: :packetized}
     {{:ok, caps: {:output, caps}}, state}
   end
 

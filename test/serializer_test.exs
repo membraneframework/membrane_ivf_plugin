@@ -6,7 +6,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
   alias Membrane.{Testing, RemoteStream, Buffer}
   alias Membrane.Element.IVF
-  alias Membrane.Caps.VP9
+  alias Membrane.{VP9, VP8}
 
   @fixtures_dir "./test/fixtures/"
   @results_dir "./test/results/"
