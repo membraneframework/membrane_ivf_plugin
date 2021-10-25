@@ -6,7 +6,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
   alias Membrane.{Testing, RemoteStream, Buffer}
   alias Membrane.Element.IVF
-  alias Membrane.{VP9, VP8}
+  alias Membrane.VP9
 
   @fixtures_dir "./test/fixtures/"
   @results_dir "./test/results/"
@@ -73,7 +73,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
     assert_sink_buffer(pipeline, :sink, ivf_buffer)
 
-    <<file_header::binary-size(32), frame_header::binary-size(12), frame::binary()>> =
+    <<file_header::binary-size(32), frame_header::binary-size(12), _frame::binary()>> =
       ivf_buffer.payload
 
     <<signature::binary-size(4), version::binary-size(2), length_of_header::binary-size(2),
@@ -97,7 +97,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
     assert_sink_buffer(pipeline, :sink, ivf_buffer)
 
-    <<frame_header::binary-size(12), frame::binary()>> = ivf_buffer.payload
+    <<frame_header::binary-size(12), _frame::binary()>> = ivf_buffer.payload
     <<size_of_frame::binary-size(4), timestamp::binary-size(8)>> = frame_header
 
     assert size_of_frame == <<byte_size(@frame)::32-little>>
@@ -109,6 +109,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
     assert timestamp == <<1::64-little>>
 
     assert_end_of_stream(pipeline, :sink)
+    Testing.Pipeline.stop_and_terminate(pipeline, blocking?: true)
   end
 
   test "serialize real vp9 buffers" do
@@ -134,5 +135,6 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
     assert File.read!(@results_dir <> "result.ivf") ==
              File.read!(@fixtures_dir <> "input_vp9.ivf")
+    Testing.Pipeline.stop_and_terminate(pipeline, blocking?: true)
   end
 end

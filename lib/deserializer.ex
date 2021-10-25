@@ -38,18 +38,16 @@ defmodule Membrane.Element.IVF.Deserializer do
   end
 
   @impl true
-  def handle_prepared_to_playing(_ctx, state) do
-    caps = %RemoteStream{content_format: Membrane.Caps.Matcher.one_of([VP9, VP8]), type: :packetized}
-    {{:ok, caps: {:output, caps}}, state}
-  end
-
-  @impl true
   def handle_process(:input, buffer, _ctx, %State{start_of_stream?: true} = state) do
     state = %State{state | frame_acc: state.frame_acc <> buffer.payload}
 
     with {:ok, file_header, rest} <- Headers.parse_ivf_header(state.frame_acc),
          {:ok, buffer, rest} <- get_vp9_buffer(rest, file_header.scale <|> file_header.rate) do
-      {{:ok, buffer: {:output, buffer}, redemand: :output},
+      caps = case file_header.four_cc do
+        "VP90" -> %Membrane.RemoteStream{content_format: VP9, type: :packetized}
+        "VP80" -> %Membrane.RemoteStream{content_format: VP8, type: :packetized}
+      end
+      {{:ok, caps: {:output, caps}, buffer: {:output, buffer}, redemand: :output},
        %State{
          frame_acc: rest,
          start_of_stream?: false,
