@@ -68,6 +68,8 @@ defmodule Membrane.Element.IVF.Serializer do
           )
 
     ivf_buffer = (ivf_file_header || "") <> ivf_frame
-    {{:ok, buffer: {:output, %Buffer{buffer | payload: ivf_buffer}}, redemand: :output}, %State{state | first_frame: false}}
+
+    {{:ok, buffer: {:output, %Buffer{buffer | payload: ivf_buffer}}, redemand: :output},
+     %State{state | first_frame: false}}
   end
 end

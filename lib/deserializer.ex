@@ -43,10 +43,12 @@ defmodule Membrane.Element.IVF.Deserializer do
 
     with {:ok, file_header, rest} <- Headers.parse_ivf_header(state.frame_acc),
          {:ok, buffer, rest} <- get_vp9_buffer(rest, file_header.scale <|> file_header.rate) do
-      caps = case file_header.four_cc do
-        "VP90" -> %Membrane.RemoteStream{content_format: VP9, type: :packetized}
-        "VP80" -> %Membrane.RemoteStream{content_format: VP8, type: :packetized}
-      end
+      caps =
+        case file_header.four_cc do
+          "VP90" -> %Membrane.RemoteStream{content_format: VP9, type: :packetized}
+          "VP80" -> %Membrane.RemoteStream{content_format: VP8, type: :packetized}
+        end
+
       {{:ok, caps: {:output, caps}, buffer: {:output, buffer}, redemand: :output},
        %State{
          frame_acc: rest,

@@ -135,6 +135,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
     assert File.read!(@results_dir <> "result.ivf") ==
              File.read!(@fixtures_dir <> "input_vp9.ivf")
+
     Testing.Pipeline.stop_and_terminate(pipeline, blocking?: true)
   end
 end
