@@ -74,6 +74,6 @@ defmodule Membrane.Element.IVF.IntegrationTest do
     assert_pipeline_playback_changed(pipeline, _, :stopped)
 
     assert File.read!(input.path) ==
-      File.read!(@results_dir <> result)
+             File.read!(@results_dir <> result)
   end
 end
