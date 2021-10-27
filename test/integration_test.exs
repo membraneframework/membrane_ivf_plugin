@@ -6,9 +6,11 @@ defmodule Membrane.Element.IVF.IntegrationTest do
   alias Membrane.Element.IVF
   alias Membrane.{Testing}
 
-  @input_video %{path: "./test/fixtures/input_vp9.ivf", width: 1080, height: 720}
+  @input_video_vp8 %{path: "./test/fixtures/input_vp8.ivf", width: 1080, height: 720}
+  @input_video_vp9 %{path: "./test/fixtures/input_vp9.ivf", width: 1080, height: 720}
   @results_dir "./test/results/"
-  @ivf_result_file "result.ivf"
+  @result_file_vp8 "result_vp8.ivf"
+  @result_file_vp9 "result_vp9.ivf"
 
   defmodule TestPipeline do
     use Membrane.Pipeline
@@ -40,8 +42,12 @@ defmodule Membrane.Element.IVF.IntegrationTest do
     end
   end
 
-  test "deserializing ivf and serializing back" do
-    test_stream(@input_video, @ivf_result_file)
+  test "deserializing vp8 ivf and serializing back" do
+    test_stream(@input_video_vp8, @result_file_vp8)
+  end
+
+  test "deserializing vp9 ivf and serializing back" do
+    test_stream(@input_video_vp9, @result_file_vp9)
   end
 
   defp test_stream(input, result) do
@@ -64,7 +70,10 @@ defmodule Membrane.Element.IVF.IntegrationTest do
 
     assert_end_of_stream(pipeline, :file_sink)
 
-    Testing.Pipeline.stop(pipeline)
+    Testing.Pipeline.stop_and_terminate(pipeline, blocking?: true)
     assert_pipeline_playback_changed(pipeline, _, :stopped)
+
+    assert File.read!(input.path) ==
+      File.read!(@results_dir <> result)
   end
 end
