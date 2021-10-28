@@ -5,6 +5,6 @@ on:
     - master
 jobs:
   check-changelog-update:
-    uses: membraneframework/membrane_core/.github/workflows/enforce-changelog-update.yml@action-enforcing-changelog-update
+    uses: membraneframework/membrane_core/.github/workflows/enforce-changelog-update.yml@master
     secrets:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN}}
