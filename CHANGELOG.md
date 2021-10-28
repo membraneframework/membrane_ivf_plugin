@@ -2,3 +2,4 @@
 ### Release notes:
 
 ### PR's not influencing public API:
+  * add gitaction for changelog update enforcement #5
