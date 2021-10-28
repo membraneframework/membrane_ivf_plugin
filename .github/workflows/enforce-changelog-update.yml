@@ -2,7 +2,7 @@ name: Enforce CHANGELOG Update
 on:
   pull_request:
     branches:
-    - master
+      - master
 jobs:
   check-changelog-update:
     uses: membraneframework/membrane_core/.github/workflows/enforce-changelog-update.yml@master
