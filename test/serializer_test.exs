@@ -1,4 +1,4 @@
-defmodule Membrane.Element.IVF.VP9Test do
+defmodule Membrane.Element.IVF.SerializerTest do
   use ExUnit.Case
   use Ratio
 
@@ -10,6 +10,8 @@ defmodule Membrane.Element.IVF.VP9Test do
 
   @fixtures_dir "./test/fixtures/"
   @results_dir "./test/results/"
+  @input_file "input_vp9.ivf"
+  @result_file "result_vp9.ivf"
 
   defmodule TestPipeline do
     use Membrane.Pipeline
@@ -121,7 +123,7 @@ defmodule Membrane.Element.IVF.VP9Test do
         module: TestPipeline,
         custom_args: %{
           to_file?: true,
-          result_file: @results_dir <> "result.ivf",
+          result_file: @results_dir <> @result_file,
           buffers: buffers
         }
       }
@@ -134,8 +136,8 @@ defmodule Membrane.Element.IVF.VP9Test do
 
     assert_end_of_stream(pipeline, :sink)
 
-    assert File.read!(@results_dir <> "result.ivf") ==
-             File.read!(@fixtures_dir <> "input_vp9.ivf")
+    assert File.read!(@results_dir <> @result_file) ==
+             File.read!(@fixtures_dir <> @input_file)
 
     Testing.Pipeline.stop_and_terminate(pipeline, blocking?: true)
   end

@@ -1,14 +1,14 @@
 defmodule Membrane.IVF.Plugin.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.2.0"
   @github_url "https://github.com/membraneframework/membrane_ivf_plugin"
 
   def project do
     [
       app: :membrane_ivf_plugin,
       version: @version,
-      elixir: "~> 1.10",
+      elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -40,9 +40,7 @@ defmodule Membrane.IVF.Plugin.MixProject do
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:dialyxir, "~> 1.1.0", only: :dev, runtime: false},
       {:credo, "~> 1.4", only: :dev, runtime: false},
-      {:membrane_file_plugin, "~> 0.6.0", only: :test},
-      {:membrane_vp8_format, "~> 0.2.0", only: :test},
-      {:membrane_vp9_format, "~> 0.2.0", only: :test}
+      {:membrane_file_plugin, "~> 0.6.0", only: :test}
     ]
   end
 

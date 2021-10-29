@@ -8,13 +8,13 @@ defmodule Membrane.Element.IVF.Serializer do
 
   alias Membrane.Element.IVF
   alias Membrane.{Buffer, RemoteStream}
-  alias Membrane.VP9
-  alias Membrane.VP8
+  alias Membrane.{VP9, VP8}
 
-  def_options width: [spec: integer, description: "width of frame"],
-              height: [spec: integer, description: "height of frame"],
-              scale: [spec: integer, default: 1, description: "scale"],
-              rate: [spec: integer, default: 1_000_000, description: "rate"]
+  def_options width: [spec: [integer], description: "width of frame"],
+              height: [spec: [integer], description: "height of frame"],
+              scale: [spec: [integer], default: 1, description: "scale"],
+              rate: [spec: [integer], default: 1_000_000, description: "rate"],
+              frame_count: [spec: [integer], default: 0, description: "number of frames"]
 
   def_input_pad :input,
     caps: {RemoteStream, content_format: one_of([VP9, VP8]), type: :packetized},
@@ -24,7 +24,7 @@ defmodule Membrane.Element.IVF.Serializer do
 
   defmodule State do
     @moduledoc false
-    defstruct [:width, :height, :timebase]
+    defstruct [:width, :height, :timebase, :first_frame, :frame_count]
   end
 
   @impl true
@@ -35,7 +35,9 @@ defmodule Membrane.Element.IVF.Serializer do
      %State{
        width: options.width,
        height: options.height,
-       timebase: options.scale <|> options.rate
+       timebase: options.scale <|> options.rate,
+       frame_count: options.frame_count,
+       first_frame: true
      }}
   end
 
@@ -53,16 +55,19 @@ defmodule Membrane.Element.IVF.Serializer do
         frame
 
     ivf_file_header =
-      if timestamp == 0,
+      if state.first_frame,
         do:
           IVF.Headers.create_ivf_header(
             state.width,
             state.height,
             state.timebase,
+            state.frame_count,
             ctx.pads.input.caps
           )
 
     ivf_buffer = (ivf_file_header || "") <> ivf_frame
-    {{:ok, buffer: {:output, %Buffer{buffer | payload: ivf_buffer}}, redemand: :output}, state}
+
+    {{:ok, buffer: {:output, %Buffer{buffer | payload: ivf_buffer}}, redemand: :output},
+     %State{state | first_frame: false}}
   end
 end
