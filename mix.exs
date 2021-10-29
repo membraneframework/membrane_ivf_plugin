@@ -1,8 +1,8 @@
-defmodule Membrane.Element.IVF.MixProject do
+defmodule Membrane.IVF.Plugin.MixProject do
   use Mix.Project
 
   @version "0.2.0"
-  @github_url "https://github.com/membraneframework/membrane-element-ivf"
+  @github_url "https://github.com/membraneframework/membrane_ivf_plugin"
 
   def project do
     [
@@ -14,11 +14,11 @@ defmodule Membrane.Element.IVF.MixProject do
       deps: deps(),
 
       # hex
-      description: "Membrane Multimedia Framework (IVF Element)",
+      description: "Membrane plugin for IVF container",
       package: package(),
 
       # docs
-      name: "Membrane Element: IVF",
+      name: "Membrane IVF Plugin",
       source_url: @github_url,
       homepage_url: "https://membraneframework.org",
       docs: docs()
@@ -37,8 +37,8 @@ defmodule Membrane.Element.IVF.MixProject do
   defp deps do
     [
       {:membrane_core, "~> 0.7.0"},
-      {:ex_doc, "~> 0.22", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.0.0", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.24", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.1.0", only: :dev, runtime: false},
       {:credo, "~> 1.4", only: :dev, runtime: false},
       {:membrane_file_plugin, "~> 0.6.0", only: :test}
     ]
@@ -60,7 +60,7 @@ defmodule Membrane.Element.IVF.MixProject do
       main: "readme",
       extras: ["README.md", "LICENSE"],
       source_ref: "v#{@version}",
-      nest_modules_by_prefix: [Membrane.Template]
+      nest_modules_by_prefix: [Membrane.IVF]
     ]
   end
 end

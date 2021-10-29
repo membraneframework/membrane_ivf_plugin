@@ -111,6 +111,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
     assert timestamp == <<1::64-little>>
 
     assert_end_of_stream(pipeline, :sink)
+
     Testing.Pipeline.stop_and_terminate(pipeline, blocking?: true)
   end
 

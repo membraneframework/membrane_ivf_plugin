@@ -1,5 +1,8 @@
 defmodule Membrane.Element.IVF.Serializer do
-  @moduledoc false
+  @moduledoc """
+  Serializes video stream into IVF format.
+  """
+
   use Membrane.Filter
   use Membrane.Log
 
@@ -44,12 +47,7 @@ defmodule Membrane.Element.IVF.Serializer do
   end
 
   @impl true
-  def handle_process(
-        :input,
-        buffer,
-        ctx,
-        state
-      ) do
+  def handle_process(:input, buffer, ctx, state) do
     %Buffer{payload: frame, metadata: %{timestamp: timestamp}} = buffer
 
     ivf_frame =
