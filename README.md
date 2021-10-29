@@ -4,7 +4,7 @@
 [![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/membrane_ivf_plugin/)
 [![CircleCI](https://circleci.com/gh/membraneframework/membrane_ivf_plugin.svg?style=svg)](https://circleci.com/gh/membraneframework/membrane_ivf_plugin)
 
-Plugin for converting video stream into IVF format.
+Plugin for serializing a video stream into the IVF format and for deserializing IVF into a video stream.
 
 It is part of [Membrane Multimedia Framework](https://membraneframework.org).
 
@@ -15,7 +15,7 @@ The package can be installed by adding `membrane_ivf_plugin` to your list of dep
 ```elixir
 def deps do
   [
-    {:membrane_ivf_plugin, "~> 0.1.0"}
+    {:membrane_ivf_plugin, "~> 0.2.0"}
   ]
 end
 ```
