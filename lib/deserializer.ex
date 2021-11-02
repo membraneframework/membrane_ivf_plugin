@@ -42,7 +42,7 @@ defmodule Membrane.Element.IVF.Deserializer do
     state = %State{state | frame_acc: state.frame_acc <> buffer.payload}
 
     with {:ok, file_header, rest} <- Headers.parse_ivf_header(state.frame_acc),
-         {:ok, buffer, rest} <- get_vp9_buffer(rest, file_header.scale <|> file_header.rate) do
+         {:ok, buffer, rest} <- get_buffer(rest, file_header.scale <|> file_header.rate) do
       caps =
         case file_header.four_cc do
           "VP90" -> %Membrane.RemoteStream{content_format: VP9, type: :packetized}
@@ -76,18 +76,18 @@ defmodule Membrane.Element.IVF.Deserializer do
   end
 
   defp flush_acc(state, buffers) do
-    case get_vp9_buffer(state.frame_acc, state.timebase) do
+    case get_buffer(state.frame_acc, state.timebase) do
       {:ok, buffer, rest} -> flush_acc(%State{state | frame_acc: rest}, [buffer | buffers])
       _error -> {:ok, buffers |> Enum.reverse(), state}
     end
   end
 
-  defp get_vp9_buffer(payload, timebase) do
+  defp get_buffer(payload, timebase) do
     with {:ok, %FrameHeader{size_of_frame: size_of_frame, timestamp: timestamp}, rest} <-
            Headers.parse_ivf_frame_header(payload),
-         <<vp9_frame::binary-size(size_of_frame), rest::binary()>> <- rest do
+         <<frame::binary-size(size_of_frame), rest::binary()>> <- rest do
       timestamp = timestamp * (timebase * Time.second())
-      {:ok, %Buffer{metadata: %{timestamp: timestamp}, payload: vp9_frame}, rest}
+      {:ok, %Buffer{metadata: %{timestamp: timestamp}, payload: frame}, rest}
     else
       _error -> {:error_too_short, payload}
     end
