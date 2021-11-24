@@ -39,8 +39,6 @@ defmodule Membrane.Element.IVF.Serializer do
 
   @impl true
   def handle_caps(:input, caps, _ctx, state) do
-    use Ratio
-
     state_map = Map.from_struct(state)
     caps_map = Map.from_struct(caps)
     merged = Map.merge(state_map, caps_map)
