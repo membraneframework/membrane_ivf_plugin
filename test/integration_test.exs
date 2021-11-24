@@ -6,8 +6,10 @@ defmodule Membrane.Element.IVF.IntegrationTest do
   alias Membrane.Element.IVF
   alias Membrane.{Testing}
 
-  @input_video_vp8 %{path: "./test/fixtures/input_vp8.ivf", width: 1080, height: 720}
-  @input_video_vp9 %{path: "./test/fixtures/input_vp9.ivf", width: 1080, height: 720}
+  #! , width: 1080, height: 720}
+  @input_video_vp8 %{path: "./test/fixtures/input_vp8.ivf"}
+  #! , width: 1080, height: 720}
+  @input_video_vp9 %{path: "./test/fixtures/input_vp9.ivf"}
   @results_dir "./test/results/"
   @result_file_vp8 "result_vp8.ivf"
   @result_file_vp9 "result_vp9.ivf"
@@ -21,11 +23,7 @@ defmodule Membrane.Element.IVF.IntegrationTest do
         children: [
           file_source: %Membrane.File.Source{location: options.input.path},
           deserializer: IVF.Deserializer,
-          serializer: %IVF.Serializer{
-            width: options.input.width,
-            height: options.input.height,
-            rate: 30
-          },
+          serializer: %IVF.Serializer{rate: 30},
           file_sink: %Membrane.File.Sink{location: options.result_file}
         ],
         links: [

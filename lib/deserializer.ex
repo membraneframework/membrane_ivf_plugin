@@ -7,15 +7,17 @@ defmodule Membrane.Element.IVF.Deserializer do
   use Membrane.Filter
   use Ratio
 
-  alias Membrane.{Time, RemoteStream, Buffer}
+  alias Membrane.{Time, Buffer}
   alias Membrane.{VP9, VP8}
   alias Membrane.Element.IVF.Headers
   alias Membrane.Element.IVF.Headers.FrameHeader
 
-  def_input_pad :input, caps: :any, demand_unit: :buffers
+  def_input_pad :input,
+    caps: :any,
+    demand_unit: :buffers
 
   def_output_pad :output,
-    caps: {RemoteStream, content_format: one_of([VP9, VP8]), type: :packetized}
+    caps: [VP8, VP9]
 
   defmodule State do
     @moduledoc false
@@ -45,8 +47,11 @@ defmodule Membrane.Element.IVF.Deserializer do
          {:ok, buffer, rest} <- get_buffer(rest, file_header.scale <|> file_header.rate) do
       caps =
         case file_header.four_cc do
-          "VP90" -> %Membrane.RemoteStream{content_format: VP9, type: :packetized}
-          "VP80" -> %Membrane.RemoteStream{content_format: VP8, type: :packetized}
+          "VP90" ->
+            %VP9{width: file_header.width, height: file_header.height}
+
+          "VP80" ->
+            %VP8{width: file_header.width, height: file_header.height}
         end
 
       {{:ok, caps: {:output, caps}, buffer: {:output, buffer}, redemand: :output},

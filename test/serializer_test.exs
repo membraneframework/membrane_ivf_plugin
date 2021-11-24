@@ -4,7 +4,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
   import Membrane.Testing.Assertions
 
-  alias Membrane.{Testing, RemoteStream, Buffer}
+  alias Membrane.{Testing, Buffer}
   alias Membrane.Element.IVF
   alias Membrane.VP9
 
@@ -25,10 +25,10 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
       spec = %ParentSpec{
         children: [
-          ivf_serializer: %IVF.Serializer{width: 1080, height: 720, rate: 30},
+          ivf_serializer: %IVF.Serializer{rate: 30},
           source: %Testing.Source{
             output: Testing.Source.output_from_buffers(options.buffers),
-            caps: %RemoteStream{content_format: VP9, type: :packetized}
+            caps: %VP9{width: 1080, height: 720}
           },
           sink: sink
         ],

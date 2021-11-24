@@ -7,17 +7,15 @@ defmodule Membrane.Element.IVF.Serializer do
   use Membrane.Log
 
   alias Membrane.Element.IVF
-  alias Membrane.{Buffer, RemoteStream}
+  alias Membrane.Buffer
   alias Membrane.{VP9, VP8}
 
-  def_options width: [spec: [integer], description: "width of frame"],
-              height: [spec: [integer], description: "height of frame"],
-              scale: [spec: [integer], default: 1, description: "scale"],
+  def_options scale: [spec: [integer], default: 1, description: "scale"],
               rate: [spec: [integer], default: 1_000_000, description: "rate"],
               frame_count: [spec: [integer], default: 0, description: "number of frames"]
 
   def_input_pad :input,
-    caps: {RemoteStream, content_format: one_of([VP9, VP8]), type: :packetized},
+    caps: [VP9, VP8],
     demand_unit: :buffers
 
   def_output_pad :output, caps: :any
@@ -33,12 +31,22 @@ defmodule Membrane.Element.IVF.Serializer do
 
     {:ok,
      %State{
-       width: options.width,
-       height: options.height,
        timebase: options.scale <|> options.rate,
        frame_count: options.frame_count,
        first_frame: true
      }}
+  end
+
+  @impl true
+  def handle_caps(:input, caps, _ctx, state) do
+    use Ratio
+
+    state_map = Map.from_struct(state)
+    caps_map = Map.from_struct(caps)
+    merged = Map.merge(state_map, caps_map)
+    new_state = struct(State, merged)
+
+    {{:ok, caps: {:output, caps}}, new_state}
   end
 
   @impl true
@@ -55,15 +63,19 @@ defmodule Membrane.Element.IVF.Serializer do
         frame
 
     ivf_file_header =
-      if state.first_frame,
-        do:
-          IVF.Headers.create_ivf_header(
-            state.width,
-            state.height,
-            state.timebase,
-            state.frame_count,
-            ctx.pads.input.caps
-          )
+      unless is_nil(state.width) or is_nil(state.height) do
+        if state.first_frame,
+          do:
+            IVF.Headers.create_ivf_header(
+              state.width,
+              state.height,
+              state.timebase,
+              state.frame_count,
+              ctx.pads.input.caps
+            )
+      else
+        raise "IVF.Serializer requires `width` and `height` to be passed via caps."
+      end
 
     ivf_buffer = (ivf_file_header || "") <> ivf_frame
 

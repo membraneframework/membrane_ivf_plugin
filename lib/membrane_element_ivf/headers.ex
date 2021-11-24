@@ -80,8 +80,8 @@ defmodule Membrane.Element.IVF.Headers do
   def create_ivf_header(width, height, timebase, frame_count, caps) do
     codec_four_cc =
       case caps do
-        %Membrane.RemoteStream{content_format: VP9} -> "VP90"
-        %Membrane.RemoteStream{content_format: VP8} -> "VP80"
+        %VP9{} -> "VP90"
+        %VP8{} -> "VP80"
         _unknown -> "\0\0\0\0"
       end
 
