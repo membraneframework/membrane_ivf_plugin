@@ -60,20 +60,19 @@ defmodule Membrane.Element.IVF.Serializer do
       IVF.Headers.create_ivf_frame_header(byte_size(frame), timestamp, state.timebase) <>
         frame
 
+    if is_nil(state.width) or is_nil(state.height),
+      do: raise("IVF.Serializer requires `width` and `height` to be passed via caps.")
+
     ivf_file_header =
-      unless is_nil(state.width) or is_nil(state.height) do
-        if state.first_frame,
-          do:
-            IVF.Headers.create_ivf_header(
-              state.width,
-              state.height,
-              state.timebase,
-              state.frame_count,
-              ctx.pads.input.caps
-            )
-      else
-        raise "IVF.Serializer requires `width` and `height` to be passed via caps."
-      end
+      if state.first_frame,
+        do:
+          IVF.Headers.create_ivf_header(
+            state.width,
+            state.height,
+            state.timebase,
+            state.frame_count,
+            ctx.pads.input.caps
+          )
 
     ivf_buffer = (ivf_file_header || "") <> ivf_frame
 
