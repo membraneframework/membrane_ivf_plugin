@@ -67,12 +67,9 @@ defmodule Membrane.Element.IVF.Deserializer do
   def handle_process(:input, buffer, _ctx, state) do
     state = %State{state | frame_acc: state.frame_acc <> buffer.payload}
 
-    with {:ok, buffers, state} <- flush_acc(state, []) do
-      {{:ok, buffer: {:output, buffers}, redemand: :output}, state}
-    else
-      {:error_too_short, payload} ->
-        {{:ok, redemand: :output}, %State{state | frame_acc: payload}}
-    end
+    {:ok, buffers, state} = flush_acc(state, [])
+
+    {{:ok, buffer: {:output, buffers}, redemand: :output}, state}
   end
 
   defp flush_acc(state, buffers) do
