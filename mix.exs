@@ -37,6 +37,10 @@ defmodule Membrane.IVF.Plugin.MixProject do
   defp deps do
     [
       {:membrane_core, "~> 0.8.0"},
+      {:membrane_vp8_format,
+       github: "membraneframework/membrane_vp8_format", branch: "add-stream-params"},
+      {:membrane_vp9_format,
+       github: "membraneframework/membrane_vp9_format", branch: "add-stream-params"},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:dialyxir, "~> 1.1.0", only: :dev, runtime: false},
       {:credo, "~> 1.4", only: :dev, runtime: false},
