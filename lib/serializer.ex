@@ -10,8 +10,8 @@ defmodule Membrane.Element.IVF.Serializer do
   alias Membrane.{Buffer, RemoteStream}
   alias Membrane.{VP9, VP8}
 
-  def_options width: [spec: [integer], description: "width of frame"],
-              height: [spec: [integer], description: "height of frame"],
+  def_options width: [spec: [integer], default: 0, description: "width of frame"],
+              height: [spec: [integer], default: 0, description: "height of frame"],
               scale: [spec: [integer], default: 1, description: "scale"],
               rate: [spec: [integer], default: 1_000_000, description: "rate"],
               frame_count: [spec: [integer], default: 0, description: "number of frames"]
