@@ -25,11 +25,11 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
       spec = %ParentSpec{
         children: [
-          ivf_serializer: %IVF.Serializer{width: 1080, height: 720, rate: 30},
           source: %Testing.Source{
             output: Testing.Source.output_from_buffers(options.buffers),
             caps: %RemoteStream{content_format: VP9, type: :packetized}
           },
+          ivf_serializer: %IVF.Serializer{width: 1080, height: 720, rate: 30},
           sink: sink
         ],
         links: [
