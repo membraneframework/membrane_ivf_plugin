@@ -47,7 +47,7 @@ defmodule Membrane.Element.IVF.Serializer do
   end
 
   @impl true
-  def handle_caps(_, _, _, state) do
+  def handle_caps(_pad, _caps, _ctx, state) do
     {:ok, state}
   end
 
