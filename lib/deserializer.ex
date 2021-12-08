@@ -48,17 +48,13 @@ defmodule Membrane.Element.IVF.Deserializer do
           "VP90" ->
             %VP9{
               width: file_header.width,
-              height: file_header.height,
-              scale: file_header.scale,
-              rate: file_header.rate
+              height: file_header.height
             }
 
           "VP80" ->
             %VP8{
               width: file_header.width,
-              height: file_header.height,
-              scale: file_header.scale,
-              rate: file_header.rate
+              height: file_header.height
             }
         end
 

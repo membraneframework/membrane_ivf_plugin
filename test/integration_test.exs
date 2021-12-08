@@ -21,7 +21,7 @@ defmodule Membrane.Element.IVF.IntegrationTest do
         children: [
           file_source: %Membrane.File.Source{location: options.input.path},
           deserializer: IVF.Deserializer,
-          serializer: IVF.Serializer,
+          serializer: %IVF.Serializer{rate: 30},
           file_sink: %Membrane.File.Sink{location: options.result_file}
         ],
         links: [

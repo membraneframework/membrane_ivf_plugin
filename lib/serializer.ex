@@ -34,25 +34,25 @@ defmodule Membrane.Element.IVF.Serializer do
   @impl true
   def handle_init(options) do
     use Ratio
-    state = apply_params_to_state(%State{}, options)
-    state = %State{state | timebase: state.scale <|> state.rate}
-    {:ok, state}
+
+    {:ok,
+     %State{
+       width: options.width,
+       height: options.height,
+       timebase: options.scale <|> options.rate,
+       frame_count: options.frame_count,
+       first_frame: true
+     }}
   end
 
   @impl true
   def handle_caps(:input, %VP8{} = caps, _ctx, state) do
-    use Ratio
-    state = apply_params_to_state(state, caps)
-    state = %State{state | timebase: state.scale <|> state.rate}
-    {:ok, state}
+    {:ok, %State{state | height: caps.height, width: caps.width}}
   end
 
   @impl true
   def handle_caps(:input, %VP9{} = caps, _ctx, state) do
-    use Ratio
-    state = apply_params_to_state(state, caps)
-    state = %State{state | timebase: state.scale <|> state.rate}
-    {:ok, state}
+    {:ok, %State{state | height: caps.height, width: caps.width}}
   end
 
   @impl true
@@ -77,7 +77,9 @@ defmodule Membrane.Element.IVF.Serializer do
       if state.first_frame do
         if state.width == 0 or state.height == 0,
           do:
-            IO.warn("Serializing stream to IVF without width or height. These parameters can be passed via options or caps")
+            IO.warn(
+              "Serializing stream to IVF without width or height. These parameters can be passed via options or caps"
+            )
 
         IVF.Headers.create_ivf_header(
           state.width,
@@ -92,20 +94,5 @@ defmodule Membrane.Element.IVF.Serializer do
 
     {{:ok, buffer: {:output, %Buffer{buffer | payload: ivf_buffer}}, redemand: :output},
      %State{state | first_frame: false}}
-  end
-
-  defp apply_params_to_state(state, params) do
-    non_nil_params =
-      params
-      |> Map.from_struct()
-      |> Enum.filter(fn {_, v} -> v != nil end)
-      |> Enum.into(%{})
-
-    new_state =
-      state
-      |> Map.from_struct()
-      |> Map.merge(non_nil_params)
-
-    struct!(State, new_state)
   end
 end
