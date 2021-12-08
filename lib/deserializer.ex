@@ -69,7 +69,7 @@ defmodule Membrane.Element.IVF.Deserializer do
          timebase: file_header.scale <|> file_header.rate
        }}
     else
-      {:error_too_short, _payload} ->
+      :error_too_short ->
         {{:ok, redemand: :output}, state}
 
       _error ->
@@ -88,7 +88,7 @@ defmodule Membrane.Element.IVF.Deserializer do
   defp flush_acc(state, buffers) do
     case get_buffer(state.frame_acc, state.timebase) do
       {:ok, buffer, rest} -> flush_acc(%State{state | frame_acc: rest}, [buffer | buffers])
-      _error -> {:ok, buffers |> Enum.reverse(), state}
+      _error -> {:ok, Enum.reverse(buffers), state}
     end
   end
 
@@ -99,7 +99,7 @@ defmodule Membrane.Element.IVF.Deserializer do
       timestamp = timestamp * (timebase * Time.second())
       {:ok, %Buffer{pts: timestamp, payload: frame}, rest}
     else
-      _error -> {:error_too_short, payload}
+      _error -> :error_too_short
     end
   end
 end

@@ -33,17 +33,26 @@ defmodule Membrane.Element.IVF.Serializer do
 
   @impl true
   def handle_init(options) do
-    update_state(%State{}, options)
+    use Ratio
+    state = apply_params_to_state(%State{}, options)
+    state = %State{state | timebase: state.scale <|> state.rate}
+    {:ok, state}
   end
 
   @impl true
   def handle_caps(:input, %VP8{} = caps, _ctx, state) do
-    update_state(state, caps)
+    use Ratio
+    state = apply_params_to_state(state, caps)
+    state = %State{state | timebase: state.scale <|> state.rate}
+    {:ok, state}
   end
 
   @impl true
   def handle_caps(:input, %VP9{} = caps, _ctx, state) do
-    update_state(state, caps)
+    use Ratio
+    state = apply_params_to_state(state, caps)
+    state = %State{state | timebase: state.scale <|> state.rate}
+    {:ok, state}
   end
 
   @impl true
@@ -68,7 +77,7 @@ defmodule Membrane.Element.IVF.Serializer do
       if state.first_frame do
         if state.width == 0 or state.height == 0,
           do:
-            IO.warn("Serializing stream to IVF without width or height given via options or caps")
+            IO.warn("Serializing stream to IVF without width or height. These parameters can be passed via options or caps")
 
         IVF.Headers.create_ivf_header(
           state.width,
@@ -85,11 +94,9 @@ defmodule Membrane.Element.IVF.Serializer do
      %State{state | first_frame: false}}
   end
 
-  defp update_state(state, new_fields) do
-    use Ratio
-
-    instantiated_fields =
-      new_fields
+  defp apply_params_to_state(state, params) do
+    non_nil_params =
+      params
       |> Map.from_struct()
       |> Enum.filter(fn {_, v} -> v != nil end)
       |> Enum.into(%{})
@@ -97,8 +104,8 @@ defmodule Membrane.Element.IVF.Serializer do
     new_state =
       state
       |> Map.from_struct()
-      |> Map.merge(instantiated_fields)
+      |> Map.merge(non_nil_params)
 
-    {:ok, struct!(State, %{new_state | timebase: new_state.scale <|> new_state.rate})}
+    struct!(State, new_state)
   end
 end
