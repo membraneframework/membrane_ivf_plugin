@@ -68,7 +68,7 @@ defmodule Membrane.Element.IVF.Serializer do
 
   @impl true
   def handle_process(:input, buffer, ctx, state) do
-    %Buffer{payload: frame, pts: timestamp} = buffer
+    %Buffer{payload: frame, dts: timestamp} = buffer
 
     ivf_frame =
       IVF.Headers.create_ivf_frame_header(byte_size(frame), timestamp, state.timebase) <>

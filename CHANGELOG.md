@@ -1,6 +1,6 @@
 ## 0.4.0
 ### Release notes:
-  * Use new buffer pts field instead of metadata.timestamp #8
+  * Use new buffer dts field instead of metadata.timestamp
   * Allow vp8/vp9 input caps #9
 ## 0.3.0
 ### Release notes:
