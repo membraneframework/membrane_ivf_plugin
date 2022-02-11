@@ -8,7 +8,7 @@ defmodule Membrane.IVF.Plugin.MixProject do
     [
       app: :membrane_ivf_plugin,
       version: @version,
-      elixir: "~> 1.13",
+      elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
