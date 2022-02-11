@@ -4,11 +4,12 @@ defmodule Membrane.Element.IVF.Serializer do
   """
 
   use Membrane.Filter
-  use Membrane.Log
 
   alias Membrane.Element.IVF
   alias Membrane.{Buffer, RemoteStream}
   alias Membrane.{VP9, VP8}
+
+  require Membrane.Logger
 
   def_options width: [spec: [integer], default: 0, description: "width of frame"],
               height: [spec: [integer], default: 0, description: "height of frame"],
@@ -77,7 +78,7 @@ defmodule Membrane.Element.IVF.Serializer do
       if state.first_frame do
         if state.width == 0 or state.height == 0,
           do:
-            IO.warn(
+            Membrane.Logger.warn(
               "Serializing stream to IVF without width or height. These parameters can be passed via options or caps"
             )
 

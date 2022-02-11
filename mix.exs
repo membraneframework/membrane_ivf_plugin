@@ -8,7 +8,7 @@ defmodule Membrane.IVF.Plugin.MixProject do
     [
       app: :membrane_ivf_plugin,
       version: @version,
-      elixir: "~> 1.12",
+      elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -27,7 +27,7 @@ defmodule Membrane.IVF.Plugin.MixProject do
 
   def application do
     [
-      extra_applications: []
+      extra_applications: [:logger]
     ]
   end
 
@@ -36,7 +36,7 @@ defmodule Membrane.IVF.Plugin.MixProject do
 
   defp deps do
     [
-      {:membrane_core, "~> 0.8.0"},
+      {:membrane_core, "~> 0.8.2"},
       {:membrane_vp8_format,
        github: "membraneframework/membrane_vp8_format", branch: "add-stream-params"},
       {:membrane_vp9_format,
