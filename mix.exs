@@ -36,7 +36,7 @@ defmodule Membrane.IVF.Plugin.MixProject do
 
   defp deps do
     [
-      {:membrane_core, "~> 0.8.2"},
+      {:membrane_core, "~> 0.9.0", override: true},
       {:membrane_vp8_format,
        github: "membraneframework/membrane_vp8_format", branch: "add-stream-params"},
       {:membrane_vp9_format,
