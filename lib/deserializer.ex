@@ -33,6 +33,13 @@ defmodule Membrane.Element.IVF.Deserializer do
   end
 
   @impl true
+  def handle_caps(_pad, _caps, _ctx, state) do
+    # ignore incoming caps, we will send our own
+    # in handle_process
+    {:ok, state}
+  end
+
+  @impl true
   def handle_demand(:output, size, :buffers, _ctx, state) do
     {{:ok, demand: {:input, size}}, state}
   end

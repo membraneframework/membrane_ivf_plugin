@@ -33,7 +33,7 @@ defmodule Membrane.Element.IVF.IntegrationTest do
         ]
       }
 
-      {{:ok, spec: spec}, %{}}
+      {{:ok, spec: spec, playback: :playing}, %{}}
     end
 
     @impl true
@@ -56,21 +56,20 @@ defmodule Membrane.Element.IVF.IntegrationTest do
     end
 
     {:ok, pipeline} =
-      %Testing.Pipeline.Options{
+      [
         module: TestPipeline,
         custom_args: %{
           input: input,
           result_file: @results_dir <> result
         }
-      }
+      ]
       |> Testing.Pipeline.start_link()
 
-    Testing.Pipeline.play(pipeline)
     assert_pipeline_playback_changed(pipeline, _, :playing)
 
     assert_end_of_stream(pipeline, :file_sink)
 
-    Testing.Pipeline.stop_and_terminate(pipeline, blocking?: true)
+    Testing.Pipeline.terminate(pipeline, blocking?: true)
     assert_pipeline_playback_changed(pipeline, _, :stopped)
 
     assert File.read!(input.path) ==

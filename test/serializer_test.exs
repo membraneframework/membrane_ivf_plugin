@@ -37,7 +37,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
         ]
       }
 
-      {{:ok, spec: spec}, %{}}
+      {{:ok, spec: spec, playback: :playing}, %{}}
     end
 
     @impl true
@@ -59,16 +59,15 @@ defmodule Membrane.Element.IVF.SerializerTest do
     buffer_2 = %Buffer{payload: @frame, metadata: %{timestamp: 100_000_000 <|> 3}}
 
     {:ok, pipeline} =
-      %Testing.Pipeline.Options{
+      [
         module: TestPipeline,
         custom_args: %{
           to_file?: false,
           buffers: [buffer_1, buffer_2]
         }
-      }
+      ]
       |> Testing.Pipeline.start_link()
 
-    Testing.Pipeline.play(pipeline)
     assert_pipeline_playback_changed(pipeline, _, :playing)
 
     assert_start_of_stream(pipeline, :sink)
@@ -112,24 +111,23 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
     assert_end_of_stream(pipeline, :sink)
 
-    Testing.Pipeline.stop_and_terminate(pipeline, blocking?: true)
+    Testing.Pipeline.terminate(pipeline, blocking?: true)
   end
 
   test "serialize real vp9 buffers" do
     buffers = File.read!(@fixtures_dir <> "capture.dump") |> :erlang.binary_to_term()
 
     {:ok, pipeline} =
-      %Testing.Pipeline.Options{
+      [
         module: TestPipeline,
         custom_args: %{
           to_file?: true,
           result_file: @results_dir <> @result_file,
           buffers: buffers
         }
-      }
+      ]
       |> Testing.Pipeline.start_link()
 
-    Testing.Pipeline.play(pipeline)
     assert_pipeline_playback_changed(pipeline, _, :playing)
 
     assert_start_of_stream(pipeline, :sink)
@@ -139,6 +137,6 @@ defmodule Membrane.Element.IVF.SerializerTest do
     assert File.read!(@results_dir <> @result_file) ==
              File.read!(@fixtures_dir <> @input_file)
 
-    Testing.Pipeline.stop_and_terminate(pipeline, blocking?: true)
+    Testing.Pipeline.terminate(pipeline, blocking?: true)
   end
 end

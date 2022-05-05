@@ -4,7 +4,6 @@ defmodule Membrane.Element.IVF.Serializer do
   """
 
   use Membrane.Filter
-  use Membrane.Log
 
   alias Membrane.Element.IVF
   alias Membrane.{Buffer, RemoteStream}
