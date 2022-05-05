@@ -98,7 +98,7 @@ defmodule Membrane.Element.IVF.Deserializer do
            Headers.parse_ivf_frame_header(payload),
          <<frame::binary-size(size_of_frame), rest::binary()>> <- rest do
       timestamp = timestamp * (timebase * Time.second())
-      {:ok, %Buffer{metadata: %{timestamp: timestamp}, payload: frame}, rest}
+      {:ok, %Buffer{pts: timestamp, payload: frame}, rest}
     else
       _error -> {:error_too_short, payload}
     end

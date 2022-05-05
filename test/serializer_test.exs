@@ -55,8 +55,8 @@ defmodule Membrane.Element.IVF.SerializerTest do
   correctly calculates timestamp in frame header.
   """
   test "appends headers correctly" do
-    buffer_1 = %Buffer{payload: @frame, metadata: %{timestamp: 0}}
-    buffer_2 = %Buffer{payload: @frame, metadata: %{timestamp: 100_000_000 <|> 3}}
+    buffer_1 = %Buffer{payload: @frame, pts: 0}
+    buffer_2 = %Buffer{payload: @frame, pts: 100_000_000 <|> 3}
 
     {:ok, pipeline} =
       [
