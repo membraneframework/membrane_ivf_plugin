@@ -56,7 +56,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
   """
   test "appends headers correctly" do
     buffer_1 = %Buffer{payload: @frame, pts: 0}
-    buffer_2 = %Buffer{payload: @frame, pts: 100_000_000 <|> 3}
+    buffer_2 = %Buffer{payload: @frame, pts: div(100_000_000, 3)}
 
     {:ok, pipeline} =
       [

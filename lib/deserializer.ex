@@ -63,11 +63,11 @@ defmodule Membrane.Element.IVF.Deserializer do
          timebase: file_header.scale <|> file_header.rate
        }}
     else
-      {:error_too_short, _payload} ->
+      {:error, :too_short} ->
         {{:ok, redemand: :output}, state}
 
-      _error ->
-        {:ok, %State{}}
+      {:error, reason} ->
+        raise "Deserialization of IVF failed with reason: `#{inspect(reason)}`"
     end
   end
 
@@ -78,18 +78,16 @@ defmodule Membrane.Element.IVF.Deserializer do
       {:ok, buffers, state} ->
         {{:ok, buffer: {:output, buffers}, redemand: :output}, state}
 
-      {:error_too_short, payload} ->
-        {{:ok, redemand: :output}, %State{state | frame_acc: payload}}
-
-      error ->
-        error
+      {:error, :too_short} ->
+        {{:ok, redemand: :output}, state}
     end
   end
 
   defp flush_acc(state, buffers) do
     case get_buffer(state.frame_acc, state.timebase) do
       {:ok, buffer, rest} -> flush_acc(%State{state | frame_acc: rest}, [buffer | buffers])
-      _error -> {:ok, buffers |> Enum.reverse(), state}
+      {:error, :too_short} when buffers != [] -> {:ok, Enum.reverse(buffers), state}
+      error -> error
     end
   end
 
@@ -100,7 +98,7 @@ defmodule Membrane.Element.IVF.Deserializer do
       timestamp = timestamp * (timebase * Time.second())
       {:ok, %Buffer{pts: timestamp, payload: frame}, rest}
     else
-      _error -> {:error_too_short, payload}
+      _error -> {:error, :too_short}
     end
   end
 end
