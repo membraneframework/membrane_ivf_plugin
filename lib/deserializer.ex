@@ -12,10 +12,11 @@ defmodule Membrane.Element.IVF.Deserializer do
   alias Membrane.Element.IVF.Headers
   alias Membrane.Element.IVF.Headers.FrameHeader
 
-  def_input_pad :input, caps: :any, demand_unit: :buffers
+  def_input_pad :input, caps: :any, demand_mode: :auto, demand_unit: :buffers
 
   def_output_pad :output,
-    caps: {RemoteStream, content_format: one_of([VP9, VP8]), type: :packetized}
+    caps: {RemoteStream, content_format: one_of([VP9, VP8]), type: :packetized},
+    demand_mode: :auto
 
   defmodule State do
     @moduledoc false
@@ -40,11 +41,6 @@ defmodule Membrane.Element.IVF.Deserializer do
   end
 
   @impl true
-  def handle_demand(:output, size, :buffers, _ctx, state) do
-    {{:ok, demand: {:input, size}}, state}
-  end
-
-  @impl true
   def handle_process(:input, buffer, _ctx, %State{start_of_stream?: true} = state) do
     state = %State{state | frame_acc: state.frame_acc <> buffer.payload}
 
@@ -56,7 +52,7 @@ defmodule Membrane.Element.IVF.Deserializer do
           "VP80" -> %Membrane.RemoteStream{content_format: VP8, type: :packetized}
         end
 
-      {{:ok, caps: {:output, caps}, buffer: {:output, buffer}, redemand: :output},
+      {{:ok, caps: {:output, caps}, buffer: {:output, buffer}},
        %State{
          frame_acc: rest,
          start_of_stream?: false,
@@ -64,7 +60,7 @@ defmodule Membrane.Element.IVF.Deserializer do
        }}
     else
       {:error, :too_short} ->
-        {{:ok, redemand: :output}, state}
+        {:ok, state}
 
       {:error, reason} ->
         raise "Deserialization of IVF failed with reason: `#{inspect(reason)}`"
@@ -76,10 +72,10 @@ defmodule Membrane.Element.IVF.Deserializer do
 
     case flush_acc(state, []) do
       {:ok, buffers, state} ->
-        {{:ok, buffer: {:output, buffers}, redemand: :output}, state}
+        {{:ok, buffer: {:output, buffers}}, state}
 
       {:error, :too_short} ->
-        {{:ok, redemand: :output}, state}
+        {:ok, state}
     end
   end
 
@@ -95,7 +91,7 @@ defmodule Membrane.Element.IVF.Deserializer do
     with {:ok, %FrameHeader{size_of_frame: size_of_frame, timestamp: timestamp}, rest} <-
            Headers.parse_ivf_frame_header(payload),
          <<frame::binary-size(size_of_frame), rest::binary()>> <- rest do
-      timestamp = timestamp * (timebase * Time.second())
+      timestamp = Ratio.trunc(Time.seconds(timestamp) * timebase)
       {:ok, %Buffer{pts: timestamp, payload: frame}, rest}
     else
       _error -> {:error, :too_short}
