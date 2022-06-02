@@ -55,12 +55,14 @@ defmodule Membrane.Element.IVF.IntegrationTest do
       File.mkdir!(@results_dir)
     end
 
+    result_file = Path.join(@results_dir, result)
+
     {:ok, pipeline} =
       [
         module: TestPipeline,
         custom_args: %{
           input: input,
-          result_file: @results_dir <> result
+          result_file: result_file
         }
       ]
       |> Testing.Pipeline.start_link()
@@ -73,6 +75,6 @@ defmodule Membrane.Element.IVF.IntegrationTest do
     assert_pipeline_playback_changed(pipeline, _, :stopped)
 
     assert File.read!(input.path) ==
-             File.read!(@results_dir <> result)
+             File.read!(result_file)
   end
 end
