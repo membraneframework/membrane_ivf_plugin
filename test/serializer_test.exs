@@ -41,7 +41,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
     end
 
     @impl true
-    def handle_notification(_notification, _child, _ctx, state) do
+    def handle_child_notification(_notification, _child, _ctx, state) do
       {:ok, state}
     end
   end
