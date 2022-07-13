@@ -1,9 +1,6 @@
 defmodule Membrane.Element.IVF.Headers do
   @moduledoc false
 
-  use Ratio
-
-  alias Membrane.Time
   alias Membrane.{VP9, VP8}
 
   defmodule FileHeader do
