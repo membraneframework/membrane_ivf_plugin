@@ -41,7 +41,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
     end
 
     @impl true
-    def handle_notification(_notification, _child, _ctx, state) do
+    def handle_child_notification(_notification, _child, _ctx, state) do
       {:ok, state}
     end
   end
@@ -56,7 +56,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
   """
   test "appends headers correctly" do
     buffer_1 = %Buffer{payload: @frame, pts: 0}
-    buffer_2 = %Buffer{payload: @frame, pts: 100_000_000 <|> 3}
+    buffer_2 = %Buffer{payload: @frame, pts: Membrane.Time.seconds(1 <|> 30)}
 
     {:ok, pipeline} =
       [

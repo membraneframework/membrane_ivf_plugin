@@ -1,9 +1,6 @@
 defmodule Membrane.Element.IVF.Headers do
   @moduledoc false
 
-  use Ratio
-
-  alias Membrane.Time
   alias Membrane.{VP9, VP8}
 
   defmodule FileHeader do
@@ -57,10 +54,10 @@ defmodule Membrane.Element.IVF.Headers do
 
   @spec create_ivf_frame_header(integer, number | Ratio.t(), number | Ratio.t()) :: binary
   def create_ivf_frame_header(size, timestamp, timebase) do
-    ivf_timestamp = timestamp / (timebase * Time.second())
+    ivf_timestamp = Membrane.Time.round_to_timebase(timestamp, Membrane.Time.seconds(timebase))
     # conversion to little-endian binary strings
     size_le = <<size::32-little>>
-    timestamp_le = <<Ratio.floor(ivf_timestamp)::64-little>>
+    timestamp_le = <<ivf_timestamp::64-little>>
 
     size_le <> timestamp_le
   end
@@ -90,7 +87,7 @@ defmodule Membrane.Element.IVF.Headers do
     signature = "DKIF"
     version = <<0, 0>>
     length_of_header = <<32, 0>>
-    # conversion to little-endian binary stirngs
+    # conversion to little-endian binary strings
     width_le = <<width::16-little>>
     height_le = <<height::16-little>>
     rate_le = <<rate::32-little>>
@@ -112,22 +109,22 @@ defmodule Membrane.Element.IVF.Headers do
   end
 
   @spec parse_ivf_frame_header(binary()) ::
-          {:ok, FrameHeader.t(), binary()} | {:error_too_short, binary()}
+          {:ok, FrameHeader.t(), binary()} | {:error, :too_short}
   def parse_ivf_frame_header(payload) when byte_size(payload) < 12,
-    do: {:error_too_short, payload}
+    do: {:error, :too_short}
 
   def parse_ivf_frame_header(<<size_of_frame::32-little, timestamp::64-little, rest::binary()>>) do
     {:ok, %FrameHeader{size_of_frame: size_of_frame, timestamp: timestamp}, rest}
   end
 
   @spec parse_ivf_header(binary()) ::
-          {:ok, FileHeader.t(), binary()} | {:error_too_short | :error_invalid_data, binary()}
-  def parse_ivf_header(payload) when byte_size(payload) < 32, do: {:error_too_short, payload}
+          {:ok, FileHeader.t(), binary()} | {:error, :too_short | :invalid_data}
+  def parse_ivf_header(payload) when byte_size(payload) < 32, do: {:error, :too_short}
 
   def parse_ivf_header(
         <<signature::binary-size(4), version::16-little, length_of_header::16-little,
           four_cc::binary-size(4), width::16-little, height::16-little, rate::32-little,
-          scale::32-little, frame_count::32-little, _unused::32, rest::binary()>> = payload
+          scale::32-little, frame_count::32-little, _unused::32, rest::binary()>>
       ) do
     if String.valid?(signature) and String.valid?(four_cc) do
       {:ok,
@@ -143,7 +140,7 @@ defmodule Membrane.Element.IVF.Headers do
          frame_count: frame_count
        }, rest}
     else
-      {:error_invalid_data, payload}
+      {:error, :invalid_data}
     end
   end
 end
