@@ -7,10 +7,10 @@ defmodule Membrane.Element.IVF.Deserializer do
   use Membrane.Filter
   use Ratio
 
-  alias Membrane.{Time, RemoteStream, Buffer}
-  alias Membrane.{VP9, VP8}
   alias Membrane.Element.IVF.Headers
   alias Membrane.Element.IVF.Headers.FrameHeader
+  alias Membrane.{Buffer, RemoteStream, Time}
+  alias Membrane.{VP8, VP9}
 
   def_input_pad :input, caps: :any, demand_mode: :auto, demand_unit: :buffers
 
