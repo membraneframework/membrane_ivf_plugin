@@ -1,7 +1,7 @@
 defmodule Membrane.Element.IVF.Headers do
   @moduledoc false
 
-  alias Membrane.{VP9, VP8}
+  alias Membrane.{VP8, VP9}
 
   defmodule FileHeader do
     @moduledoc """

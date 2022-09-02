@@ -7,7 +7,7 @@ defmodule Membrane.Element.IVF.Serializer do
 
   alias Membrane.Element.IVF
   alias Membrane.{Buffer, RemoteStream}
-  alias Membrane.{VP9, VP8}
+  alias Membrane.{VP8, VP9}
 
   def_options width: [spec: [integer], description: "width of frame"],
               height: [spec: [integer], description: "height of frame"],

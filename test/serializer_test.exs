@@ -4,7 +4,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
   import Membrane.Testing.Assertions
 
-  alias Membrane.{Testing, RemoteStream, Buffer}
+  alias Membrane.{Buffer, RemoteStream, Testing}
   alias Membrane.Element.IVF
   alias Membrane.VP9
 
