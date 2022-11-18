@@ -74,9 +74,9 @@ defmodule Membrane.Element.IVF.Headers do
   # bytes 24-27  number of frames in file
   # bytes 28-31  unused
   @spec create_ivf_header(integer, integer, Ratio.t(), integer, any) :: binary
-  def create_ivf_header(width, height, timebase, frame_count, caps) do
+  def create_ivf_header(width, height, timebase, frame_count, stream_format) do
     codec_four_cc =
-      case caps do
+      case stream_format do
         %Membrane.RemoteStream{content_format: VP9} -> "VP90"
         %Membrane.RemoteStream{content_format: VP8} -> "VP80"
         _unknown -> "\0\0\0\0"
@@ -113,7 +113,7 @@ defmodule Membrane.Element.IVF.Headers do
   def parse_ivf_frame_header(payload) when byte_size(payload) < 12,
     do: {:error, :too_short}
 
-  def parse_ivf_frame_header(<<size_of_frame::32-little, timestamp::64-little, rest::binary()>>) do
+  def parse_ivf_frame_header(<<size_of_frame::32-little, timestamp::64-little, rest::binary>>) do
     {:ok, %FrameHeader{size_of_frame: size_of_frame, timestamp: timestamp}, rest}
   end
 
@@ -124,7 +124,7 @@ defmodule Membrane.Element.IVF.Headers do
   def parse_ivf_header(
         <<signature::binary-size(4), version::16-little, length_of_header::16-little,
           four_cc::binary-size(4), width::16-little, height::16-little, rate::32-little,
-          scale::32-little, frame_count::32-little, _unused::32, rest::binary()>>
+          scale::32-little, frame_count::32-little, _unused::32, rest::binary>>
       ) do
     if String.valid?(signature) and String.valid?(four_cc) do
       {:ok,

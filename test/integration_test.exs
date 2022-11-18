@@ -16,29 +16,25 @@ defmodule Membrane.Element.IVF.IntegrationTest do
     use Membrane.Pipeline
 
     @impl true
-    def handle_init(options) do
-      spec = %ParentSpec{
-        children: [
-          file_source: %Membrane.File.Source{location: options.input.path},
-          deserializer: IVF.Deserializer,
-          serializer: %IVF.Serializer{
-            width: options.input.width,
-            height: options.input.height,
-            rate: 30
-          },
-          file_sink: %Membrane.File.Sink{location: options.result_file}
-        ],
-        links: [
-          link(:file_source) |> to(:deserializer) |> to(:serializer) |> to(:file_sink)
-        ]
-      }
+    def handle_init(_ctx, options) do
+      spec = [
+        child(:serializer, %IVF.Serializer{
+          width: options.input.width,
+          height: options.input.height,
+          rate: 30
+        }),
+        child(:file_source, %Membrane.File.Source{location: options.input.path})
+        |> child(:deserializer, IVF.Deserializer)
+        |> get_child(:serializer)
+        |> child(:file_sink, %Membrane.File.Sink{location: options.result_file})
+      ]
 
-      {{:ok, spec: spec, playback: :playing}, %{}}
+      {[spec: spec, playback: :playing], %{}}
     end
 
     @impl true
     def handle_child_notification(_notification, _child, _ctx, state) do
-      {:ok, state}
+      {[], state}
     end
   end
 
@@ -57,7 +53,7 @@ defmodule Membrane.Element.IVF.IntegrationTest do
 
     result_file = Path.join(@results_dir, result)
 
-    {:ok, pipeline} =
+    {:ok, _suprevisor_pid, pipeline} =
       [
         module: TestPipeline,
         custom_args: %{
@@ -67,12 +63,11 @@ defmodule Membrane.Element.IVF.IntegrationTest do
       ]
       |> Testing.Pipeline.start_link()
 
-    assert_pipeline_playback_changed(pipeline, _, :playing)
+    assert_pipeline_play(pipeline)
 
     assert_end_of_stream(pipeline, :file_sink)
 
     Testing.Pipeline.terminate(pipeline, blocking?: true)
-    assert_pipeline_playback_changed(pipeline, _, :stopped)
 
     assert File.read!(input.path) ==
              File.read!(result_file)

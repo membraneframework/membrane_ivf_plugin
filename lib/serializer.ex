@@ -16,10 +16,11 @@ defmodule Membrane.Element.IVF.Serializer do
               frame_count: [spec: [integer], default: 0, description: "number of frames"]
 
   def_input_pad :input,
-    caps: {RemoteStream, content_format: one_of([VP9, VP8]), type: :packetized},
+    accepted_format:
+      %RemoteStream{content_format: format, type: :packetized} when format in [VP9, VP8],
     demand_unit: :buffers
 
-  def_output_pad :output, caps: :any
+  def_output_pad :output, accepted_format: _any
 
   defmodule State do
     @moduledoc false
@@ -27,10 +28,10 @@ defmodule Membrane.Element.IVF.Serializer do
   end
 
   @impl true
-  def handle_init(options) do
+  def handle_init(_ctx, options) do
     use Ratio
 
-    {:ok,
+    {[],
      %State{
        width: options.width,
        height: options.height,
@@ -42,7 +43,7 @@ defmodule Membrane.Element.IVF.Serializer do
 
   @impl true
   def handle_demand(:output, size, :buffers, _ctx, state) do
-    {{:ok, demand: {:input, size}}, state}
+    {[demand: {:input, size}], state}
   end
 
   @impl true
@@ -61,12 +62,12 @@ defmodule Membrane.Element.IVF.Serializer do
             state.height,
             state.timebase,
             state.frame_count,
-            ctx.pads.input.caps
+            ctx.pads.input.stream_format
           )
 
     ivf_buffer = (ivf_file_header || "") <> ivf_frame
 
-    {{:ok, buffer: {:output, %Buffer{buffer | payload: ivf_buffer}}, redemand: :output},
+    {[buffer: {:output, %Buffer{buffer | payload: ivf_buffer}}, redemand: :output],
      %State{state | first_frame: false}}
   end
 end
