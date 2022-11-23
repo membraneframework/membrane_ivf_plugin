@@ -53,7 +53,7 @@ defmodule Membrane.Element.IVF.IntegrationTest do
 
     result_file = Path.join(@results_dir, result)
 
-    {:ok, _suprevisor_pid, pipeline} =
+    pipeline =
       [
         module: TestPipeline,
         custom_args: %{
@@ -61,7 +61,7 @@ defmodule Membrane.Element.IVF.IntegrationTest do
           result_file: result_file
         }
       ]
-      |> Testing.Pipeline.start_link()
+      |> Testing.Pipeline.start_link_supervised!()
 
     assert_pipeline_play(pipeline)
 

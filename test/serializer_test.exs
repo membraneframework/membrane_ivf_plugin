@@ -54,7 +54,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
     buffer_1 = %Buffer{payload: @frame, pts: 0}
     buffer_2 = %Buffer{payload: @frame, pts: Ratio.new(Membrane.Time.second(), 30)}
 
-    {:ok, _supervisor_pid, pipeline} =
+    pipeline =
       [
         module: TestPipeline,
         custom_args: %{
@@ -62,7 +62,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
           buffers: [buffer_1, buffer_2]
         }
       ]
-      |> Testing.Pipeline.start_link()
+      |> Testing.Pipeline.start_supervised!()
 
     assert_pipeline_play(pipeline)
 
@@ -113,7 +113,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
   test "serialize real vp9 buffers" do
     buffers = File.read!(@fixtures_dir <> "capture.dump") |> :erlang.binary_to_term()
 
-    {:ok, _supervisor, pipeline} =
+    pipeline =
       [
         module: TestPipeline,
         custom_args: %{
@@ -122,7 +122,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
           buffers: buffers
         }
       ]
-      |> Testing.Pipeline.start_link()
+      |> Testing.Pipeline.start_supervised!()
 
     assert_pipeline_play(pipeline)
 
