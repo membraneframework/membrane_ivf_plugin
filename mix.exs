@@ -1,7 +1,7 @@
 defmodule Membrane.IVF.Plugin.MixProject do
   use Mix.Project
 
-  @version "0.4.1"
+  @version "0.5.0"
   @github_url "https://github.com/membraneframework/membrane_ivf_plugin"
 
   def project do
@@ -37,11 +37,11 @@ defmodule Membrane.IVF.Plugin.MixProject do
 
   defp deps do
     [
-      {:membrane_core, github: "membraneframework/membrane_core", override: true},
+      {:membrane_core, "~> 0.11.0"},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
       {:credo, ">= 0.0.0", only: :dev, runtime: false},
-      {:membrane_file_plugin, "~> 0.12.0", only: :test}
+      {:membrane_file_plugin, "~> 0.13.0", only: :test}
     ]
   end
 

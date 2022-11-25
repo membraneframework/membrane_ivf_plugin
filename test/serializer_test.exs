@@ -17,32 +17,28 @@ defmodule Membrane.Element.IVF.SerializerTest do
     use Membrane.Pipeline
 
     @impl true
-    def handle_init(options) do
+    def handle_init(_ctx, options) do
       sink =
         if options.to_file?,
           do: %Membrane.File.Sink{location: options.result_file},
           else: Testing.Sink
 
-      spec = %ParentSpec{
-        children: [
-          ivf_serializer: %IVF.Serializer{width: 1080, height: 720, rate: 30},
-          source: %Testing.Source{
-            output: Testing.Source.output_from_buffers(options.buffers),
-            caps: %RemoteStream{content_format: VP9, type: :packetized}
-          },
-          sink: sink
-        ],
-        links: [
-          link(:source) |> to(:ivf_serializer) |> to(:sink)
-        ]
-      }
+      spec = [
+        child(:source, %Testing.Source{
+          output: Testing.Source.output_from_buffers(options.buffers),
+          stream_format: %RemoteStream{content_format: VP9, type: :packetized}
+        }),
+        get_child(:source)
+        |> child(:ivf_serializer, %IVF.Serializer{width: 1080, height: 720, rate: 30})
+        |> child(:sink, sink)
+      ]
 
-      {{:ok, spec: spec, playback: :playing}, %{}}
+      {[spec: spec, playback: :playing], %{}}
     end
 
     @impl true
     def handle_child_notification(_notification, _child, _ctx, state) do
-      {:ok, state}
+      {[], state}
     end
   end
 
@@ -56,9 +52,9 @@ defmodule Membrane.Element.IVF.SerializerTest do
   """
   test "appends headers correctly" do
     buffer_1 = %Buffer{payload: @frame, pts: 0}
-    buffer_2 = %Buffer{payload: @frame, pts: Membrane.Time.seconds(1 <|> 30)}
+    buffer_2 = %Buffer{payload: @frame, pts: Ratio.new(Membrane.Time.second(), 30)}
 
-    {:ok, pipeline} =
+    pipeline =
       [
         module: TestPipeline,
         custom_args: %{
@@ -66,15 +62,15 @@ defmodule Membrane.Element.IVF.SerializerTest do
           buffers: [buffer_1, buffer_2]
         }
       ]
-      |> Testing.Pipeline.start_link()
+      |> Testing.Pipeline.start_supervised!()
 
-    assert_pipeline_playback_changed(pipeline, _, :playing)
+    assert_pipeline_play(pipeline)
 
     assert_start_of_stream(pipeline, :sink)
 
     assert_sink_buffer(pipeline, :sink, ivf_buffer)
 
-    <<file_header::binary-size(32), frame_header::binary-size(12), _frame::binary()>> =
+    <<file_header::binary-size(32), frame_header::binary-size(12), _frame::binary>> =
       ivf_buffer.payload
 
     <<signature::binary-size(4), version::binary-size(2), length_of_header::binary-size(2),
@@ -98,7 +94,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
     assert_sink_buffer(pipeline, :sink, ivf_buffer)
 
-    <<frame_header::binary-size(12), _frame::binary()>> = ivf_buffer.payload
+    <<frame_header::binary-size(12), _frame::binary>> = ivf_buffer.payload
     <<size_of_frame::binary-size(4), timestamp::binary-size(8)>> = frame_header
 
     assert size_of_frame == <<byte_size(@frame)::32-little>>
@@ -117,7 +113,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
   test "serialize real vp9 buffers" do
     buffers = File.read!(@fixtures_dir <> "capture.dump") |> :erlang.binary_to_term()
 
-    {:ok, pipeline} =
+    pipeline =
       [
         module: TestPipeline,
         custom_args: %{
@@ -126,9 +122,9 @@ defmodule Membrane.Element.IVF.SerializerTest do
           buffers: buffers
         }
       ]
-      |> Testing.Pipeline.start_link()
+      |> Testing.Pipeline.start_supervised!()
 
-    assert_pipeline_playback_changed(pipeline, _, :playing)
+    assert_pipeline_play(pipeline)
 
     assert_start_of_stream(pipeline, :sink)
 
