@@ -35,7 +35,7 @@ defmodule Membrane.Element.IVF.Serializer do
      %State{
        width: options.width,
        height: options.height,
-       timebase: options.scale <|> options.rate,
+       timebase: Ratio.new(options.scale, options.rate),
        frame_count: options.frame_count,
        first_frame: true
      }}

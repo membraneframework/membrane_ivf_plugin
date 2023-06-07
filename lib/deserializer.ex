@@ -46,7 +46,7 @@ defmodule Membrane.Element.IVF.Deserializer do
     state = %State{state | frame_acc: state.frame_acc <> buffer.payload}
 
     with {:ok, file_header, rest} <- Headers.parse_ivf_header(state.frame_acc),
-         {:ok, buffer, rest} <- get_buffer(rest, file_header.scale <|> file_header.rate) do
+         {:ok, buffer, rest} <- get_buffer(rest, Ratio.new(file_header.scale, file_header.rate)) do
       stream_format =
         case file_header.four_cc do
           "VP90" -> %Membrane.RemoteStream{content_format: VP9, type: :packetized}
@@ -57,7 +57,7 @@ defmodule Membrane.Element.IVF.Deserializer do
        %State{
          frame_acc: rest,
          start_of_stream?: false,
-         timebase: file_header.scale <|> file_header.rate
+         timebase: Ratio.new(file_header.scale, file_header.rate)
        }}
     else
       {:error, :too_short} ->
