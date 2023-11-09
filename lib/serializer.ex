@@ -18,9 +18,10 @@ defmodule Membrane.Element.IVF.Serializer do
   def_input_pad :input,
     accepted_format:
       %RemoteStream{content_format: format, type: :packetized} when format in [VP9, VP8],
+    flow_control: :manual,
     demand_unit: :buffers
 
-  def_output_pad :output, accepted_format: _any
+  def_output_pad :output, flow_control: :manual, accepted_format: _any
 
   defmodule State do
     @moduledoc false
@@ -29,7 +30,7 @@ defmodule Membrane.Element.IVF.Serializer do
 
   @impl true
   def handle_init(_ctx, options) do
-    use Ratio
+    use Numbers, overload_operators: true
 
     {[],
      %State{
@@ -47,7 +48,7 @@ defmodule Membrane.Element.IVF.Serializer do
   end
 
   @impl true
-  def handle_process(:input, buffer, ctx, state) do
+  def handle_buffer(:input, buffer, ctx, state) do
     %Buffer{payload: frame, pts: timestamp} = buffer
 
     ivf_frame =

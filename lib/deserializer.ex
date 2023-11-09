@@ -5,19 +5,18 @@ defmodule Membrane.Element.IVF.Deserializer do
   Membrane timebase (it is 1 nanosecond = 1/(10^9)[s])
   """
   use Membrane.Filter
-  use Ratio
+  use Numbers, overload_operators: true
 
   alias Membrane.Element.IVF.Headers
   alias Membrane.Element.IVF.Headers.FrameHeader
   alias Membrane.{Buffer, RemoteStream, Time}
   alias Membrane.{VP8, VP9}
 
-  def_input_pad :input, accepted_format: _any, demand_mode: :auto, demand_unit: :buffers
+  def_input_pad :input, accepted_format: _any
 
   def_output_pad :output,
     accepted_format:
-      %RemoteStream{content_format: format, type: :packetized} when format in [VP9, VP8],
-    demand_mode: :auto
+      %RemoteStream{content_format: format, type: :packetized} when format in [VP9, VP8]
 
   defmodule State do
     @moduledoc false
@@ -37,12 +36,12 @@ defmodule Membrane.Element.IVF.Deserializer do
   @impl true
   def handle_stream_format(_pad, _stream_format, _ctx, state) do
     # ignore incoming stream_format, we will send our own
-    # in handle_process
+    # in handle_buffer
     {[], state}
   end
 
   @impl true
-  def handle_process(:input, buffer, _ctx, %State{start_of_stream?: true} = state) do
+  def handle_buffer(:input, buffer, _ctx, %State{start_of_stream?: true} = state) do
     state = %State{state | frame_acc: state.frame_acc <> buffer.payload}
 
     with {:ok, file_header, rest} <- Headers.parse_ivf_header(state.frame_acc),
@@ -68,7 +67,7 @@ defmodule Membrane.Element.IVF.Deserializer do
     end
   end
 
-  def handle_process(:input, buffer, _ctx, state) do
+  def handle_buffer(:input, buffer, _ctx, state) do
     state = %State{state | frame_acc: state.frame_acc <> buffer.payload}
 
     case flush_acc(state, []) do

@@ -1,6 +1,6 @@
 defmodule Membrane.Element.IVF.SerializerTest do
   use ExUnit.Case
-  use Ratio
+  use Numbers, overload_operators: true
 
   import Membrane.Testing.Assertions
 
@@ -33,7 +33,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
         |> child(:sink, sink)
       ]
 
-      {[spec: spec, playback: :playing], %{}}
+      {[spec: spec], %{}}
     end
 
     @impl true
@@ -63,8 +63,6 @@ defmodule Membrane.Element.IVF.SerializerTest do
         }
       ]
       |> Testing.Pipeline.start_supervised!()
-
-    assert_pipeline_play(pipeline)
 
     assert_start_of_stream(pipeline, :sink)
 
@@ -107,7 +105,7 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
     assert_end_of_stream(pipeline, :sink)
 
-    Testing.Pipeline.terminate(pipeline, blocking?: true)
+    Testing.Pipeline.terminate(pipeline)
   end
 
   test "serialize real vp9 buffers" do
@@ -124,8 +122,6 @@ defmodule Membrane.Element.IVF.SerializerTest do
       ]
       |> Testing.Pipeline.start_supervised!()
 
-    assert_pipeline_play(pipeline)
-
     assert_start_of_stream(pipeline, :sink)
 
     assert_end_of_stream(pipeline, :sink)
@@ -133,6 +129,6 @@ defmodule Membrane.Element.IVF.SerializerTest do
     assert File.read!(@results_dir <> @result_file) ==
              File.read!(@fixtures_dir <> @input_file)
 
-    Testing.Pipeline.terminate(pipeline, blocking?: true)
+    Testing.Pipeline.terminate(pipeline)
   end
 end

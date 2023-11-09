@@ -29,7 +29,7 @@ defmodule Membrane.Element.IVF.IntegrationTest do
         |> child(:file_sink, %Membrane.File.Sink{location: options.result_file})
       ]
 
-      {[spec: spec, playback: :playing], %{}}
+      {[spec: spec], %{}}
     end
 
     @impl true
@@ -63,11 +63,9 @@ defmodule Membrane.Element.IVF.IntegrationTest do
       ]
       |> Testing.Pipeline.start_link_supervised!()
 
-    assert_pipeline_play(pipeline)
-
     assert_end_of_stream(pipeline, :file_sink)
 
-    Testing.Pipeline.terminate(pipeline, blocking?: true)
+    Testing.Pipeline.terminate(pipeline)
 
     assert File.read!(input.path) ==
              File.read!(result_file)
