@@ -54,7 +54,7 @@ defmodule Membrane.Element.IVF.Headers do
 
   @spec create_ivf_frame_header(integer, number | Ratio.t(), number | Ratio.t()) :: binary
   def create_ivf_frame_header(size, timestamp, timebase) do
-    ivf_timestamp = Membrane.Time.round_to_timebase(timestamp, Membrane.Time.seconds(timebase))
+    ivf_timestamp = Membrane.Time.divide_by_timebase(timestamp, Membrane.Time.seconds(timebase))
     # conversion to little-endian binary strings
     size_le = <<size::32-little>>
     timestamp_le = <<ivf_timestamp::64-little>>
