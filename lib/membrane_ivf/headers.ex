@@ -113,7 +113,6 @@ defmodule Membrane.IVF.Headers do
     <<@signature, @version::16-little, @header_length::16-little, codec_four_cc::binary-4,
       width::16-little, height::16-little, rate::32-little, scale::32-little,
       frame_count::32-little, 0::32>>
-    |> IO.inspect(label: "dupa")
   end
 
   @spec parse_ivf_frame_header(binary()) ::

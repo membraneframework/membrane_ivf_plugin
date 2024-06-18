@@ -35,7 +35,11 @@ defmodule Membrane.IVF.Serializer do
 
   def_input_pad :input,
     accepted_format:
-      %RemoteStream{content_format: format, type: :packetized} when format in [VP9, VP8],
+      any_of(
+        %RemoteStream{content_format: format, type: :packetized} when format in [VP9, VP8],
+        VP8,
+        VP9
+      ),
     flow_control: :manual,
     demand_unit: :buffers
 
