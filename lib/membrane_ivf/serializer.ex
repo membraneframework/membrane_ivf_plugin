@@ -1,19 +1,37 @@
-defmodule Membrane.Element.IVF.Serializer do
+defmodule Membrane.IVF.Serializer do
   @moduledoc """
   Serializes video stream into IVF format.
   """
 
   use Membrane.Filter
 
-  alias Membrane.Element.IVF
+  alias Membrane.IVF.Headers
   alias Membrane.{Buffer, RemoteStream}
   alias Membrane.{VP8, VP9}
 
-  def_options width: [spec: [integer], description: "width of frame"],
-              height: [spec: [integer], description: "height of frame"],
-              scale: [spec: [integer], default: 1, description: "scale"],
-              rate: [spec: [integer], default: 1_000_000, description: "rate"],
-              frame_count: [spec: [integer], default: 0, description: "number of frames"]
+  def_options width: [
+                spec: non_neg_integer(),
+                description: "width of frame"
+              ],
+              height: [
+                spec: non_neg_integer(),
+                description: "height of frame"
+              ],
+              scale: [
+                spec: non_neg_integer(),
+                default: 1,
+                description: "scale"
+              ],
+              rate: [
+                spec: pos_integer(),
+                default: 1_000_000,
+                description: "rate"
+              ],
+              frame_count: [
+                spec: non_neg_integer(),
+                default: 0,
+                description: "number of frames"
+              ]
 
   def_input_pad :input,
     accepted_format:
@@ -52,13 +70,13 @@ defmodule Membrane.Element.IVF.Serializer do
     %Buffer{payload: frame, pts: timestamp} = buffer
 
     ivf_frame =
-      IVF.Headers.create_ivf_frame_header(byte_size(frame), timestamp, state.timebase) <>
+      Headers.create_ivf_frame_header(byte_size(frame), timestamp, state.timebase) <>
         frame
 
     ivf_file_header =
       if state.first_frame,
         do:
-          IVF.Headers.create_ivf_header(
+          Headers.create_ivf_header(
             state.width,
             state.height,
             state.timebase,

@@ -1,4 +1,4 @@
-defmodule Membrane.Element.IVF.Deserializer do
+defmodule Membrane.IVF.Deserializer do
   @moduledoc """
   Deserializer is capable of converting stream representing video in IVF format
   into stream of Membrane.Buffer's with video frames with correct timestamps in
@@ -7,25 +7,32 @@ defmodule Membrane.Element.IVF.Deserializer do
   use Membrane.Filter
   use Numbers, overload_operators: true
 
-  alias Membrane.Element.IVF.Headers
-  alias Membrane.Element.IVF.Headers.FrameHeader
-  alias Membrane.{Buffer, RemoteStream, Time}
+  alias Membrane.IVF.Headers
+  alias Membrane.IVF.Headers.FrameHeader
+  alias Membrane.{Buffer, Time}
   alias Membrane.{VP8, VP9}
 
   def_input_pad :input, accepted_format: _any
 
   def_output_pad :output,
+    # %RemoteStream{content_format: format, type: :packetized} when format in [VP9, VP8]
     accepted_format:
-      %RemoteStream{content_format: format, type: :packetized} when format in [VP9, VP8]
+      any_of(
+        %VP8{},
+        %VP9{}
+      )
 
   defmodule State do
     @moduledoc false
+    @type t :: %__MODULE__{
+            timebase: Ratio.t(),
+            frame_acc: binary(),
+            start_of_stream: boolean()
+          }
 
-    @doc """
-    frame_acc is tuple of {bytes_left_to_accumulate, accumulated_binary}
-    When bytes_left_to_accumulate is equal to 0 it means that whole frame has been accumulated
-    """
-    defstruct [:timebase, frame_acc: <<>>, start_of_stream?: true]
+    defstruct timebase: nil,
+              frame_acc: <<>>,
+              start_of_stream: true
   end
 
   @impl true
@@ -35,28 +42,26 @@ defmodule Membrane.Element.IVF.Deserializer do
 
   @impl true
   def handle_stream_format(_pad, _stream_format, _ctx, state) do
-    # ignore incoming stream_format, we will send our own
-    # in handle_buffer
     {[], state}
   end
 
   @impl true
-  def handle_buffer(:input, buffer, _ctx, %State{start_of_stream?: true} = state) do
+  def handle_buffer(:input, buffer, _ctx, %State{start_of_stream: true} = state) do
     state = %State{state | frame_acc: state.frame_acc <> buffer.payload}
 
     with {:ok, file_header, rest} <- Headers.parse_ivf_header(state.frame_acc),
-         {:ok, buffer, rest} <- get_buffer(rest, Ratio.new(file_header.scale, file_header.rate)) do
+         {:ok, buffer, rest} <- get_buffer(rest, file_header.timebase) do
       stream_format =
         case file_header.four_cc do
-          "VP90" -> %Membrane.RemoteStream{content_format: VP9, type: :packetized}
-          "VP80" -> %Membrane.RemoteStream{content_format: VP8, type: :packetized}
+          "VP90" -> %VP9{width: file_header.width, height: file_header.height}
+          "VP80" -> %VP8{width: file_header.width, height: file_header.height}
         end
 
       {[stream_format: {:output, stream_format}, buffer: {:output, buffer}],
        %State{
          frame_acc: rest,
-         start_of_stream?: false,
-         timebase: Ratio.new(file_header.scale, file_header.rate)
+         start_of_stream: false,
+         timebase: file_header.timebase
        }}
     else
       {:error, :too_short} ->

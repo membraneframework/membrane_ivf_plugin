@@ -1,11 +1,11 @@
-defmodule Membrane.Element.IVF.SerializerTest do
+defmodule Membrane.IVF.SerializerTest do
   use ExUnit.Case
   use Numbers, overload_operators: true
 
   import Membrane.Testing.Assertions
 
   alias Membrane.{Buffer, RemoteStream, Testing}
-  alias Membrane.Element.IVF
+  alias Membrane.IVF
   alias Membrane.VP9
 
   @fixtures_dir "./test/fixtures/"
@@ -126,8 +126,8 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
     assert_end_of_stream(pipeline, :sink)
 
-    assert File.read!(@results_dir <> @result_file) ==
-             File.read!(@fixtures_dir <> @input_file)
+    assert File.read(@results_dir <> @result_file) ==
+             File.read(@fixtures_dir <> @input_file)
 
     Testing.Pipeline.terminate(pipeline)
   end

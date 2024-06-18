@@ -1,35 +1,32 @@
-defmodule Membrane.Element.IVF.Headers do
+defmodule Membrane.IVF.Headers do
   @moduledoc false
 
   alias Membrane.{VP8, VP9}
+
+  @signature "DKIF"
+  @version 0
+  @header_length 32
 
   defmodule FileHeader do
     @moduledoc """
     A struct representing IVF file header
     """
     @type t :: %__MODULE__{
-            signature: String.t(),
-            version: non_neg_integer(),
-            length_of_header: non_neg_integer(),
             four_cc: String.t(),
             width: non_neg_integer(),
             height: non_neg_integer(),
-            rate: non_neg_integer(),
-            scale: non_neg_integer(),
+            timebase: Ratio.t(),
             frame_count: non_neg_integer()
           }
 
-    defstruct [
-      :signature,
-      :version,
-      :length_of_header,
+    @enforce_keys [
       :four_cc,
       :width,
       :height,
-      :rate,
-      :scale,
+      :timebase,
       :frame_count
     ]
+    defstruct @enforce_keys
   end
 
   defmodule FrameHeader do
@@ -73,7 +70,13 @@ defmodule Membrane.Element.IVF.Headers do
   # bytes 20-23  time base numerator (scale)
   # bytes 24-27  number of frames in file
   # bytes 28-31  unused
-  @spec create_ivf_header(integer, integer, Ratio.t(), integer, any) :: binary
+  @spec create_ivf_header(
+          non_neg_integer(),
+          non_neg_integer(),
+          Ratio.t(),
+          non_neg_integer(),
+          any()
+        ) :: binary()
   def create_ivf_header(width, height, timebase, frame_count, stream_format) do
     codec_four_cc =
       case stream_format do
@@ -84,28 +87,33 @@ defmodule Membrane.Element.IVF.Headers do
 
     %Ratio{denominator: rate, numerator: scale} = timebase
 
-    signature = "DKIF"
-    version = <<0, 0>>
-    length_of_header = <<32, 0>>
-    # conversion to little-endian binary strings
-    width_le = <<width::16-little>>
-    height_le = <<height::16-little>>
-    rate_le = <<rate::32-little>>
-    scale_le = <<scale::32-little>>
-    frame_count = <<frame_count::32>>
-    # field is not used so it is set to 0
-    unused = <<0::32>>
+    # signature = "DKIF"
+    # version = <<0, 0>>
+    # length_of_header = <<32, 0>>
+    # # conversion to little-endian binary strings
+    # width_le = <<width::16-little>>
+    # height_le = <<height::16-little>>
+    # rate_le = <<rate::32-little>>
+    # scale_le = <<scale::32-little>>
+    # # frame_count = <<frame_count::32>>
+    # # field is not used so it is set to 0
+    # unused = <<0::32>>
 
-    signature <>
-      version <>
-      length_of_header <>
-      codec_four_cc <>
-      width_le <>
-      height_le <>
-      rate_le <>
-      scale_le <>
-      frame_count <>
-      unused
+    # signature <>
+    #   version <>
+    #   length_of_header <>
+    #   codec_four_cc <>
+    #   width_le <>
+    #   height_le <>
+    #   rate_le <>
+    #   scale_le <>
+    #   frame_count <>
+    #   unused
+
+    <<@signature, @version::16-little, @header_length::16-little, codec_four_cc::binary-4,
+      width::16-little, height::16-little, rate::32-little, scale::32-little,
+      frame_count::32-little, 0::32>>
+    |> IO.inspect(label: "dupa")
   end
 
   @spec parse_ivf_frame_header(binary()) ::
@@ -122,21 +130,17 @@ defmodule Membrane.Element.IVF.Headers do
   def parse_ivf_header(payload) when byte_size(payload) < 32, do: {:error, :too_short}
 
   def parse_ivf_header(
-        <<signature::binary-size(4), version::16-little, length_of_header::16-little,
-          four_cc::binary-size(4), width::16-little, height::16-little, rate::32-little,
-          scale::32-little, frame_count::32-little, _unused::32, rest::binary>>
+        <<@signature, @version::16-little, @header_length::16-little, four_cc::binary-size(4),
+          width::16-little, height::16-little, rate::32-little, scale::32-little,
+          frame_count::32-little, _unused::32, rest::binary>>
       ) do
-    if String.valid?(signature) and String.valid?(four_cc) do
+    if String.valid?(four_cc) do
       {:ok,
        %FileHeader{
-         signature: signature,
-         version: version,
-         length_of_header: length_of_header,
          four_cc: four_cc,
          width: width,
          height: height,
-         rate: rate,
-         scale: scale,
+         timebase: Ratio.new(scale, rate),
          frame_count: frame_count
        }, rest}
     else
