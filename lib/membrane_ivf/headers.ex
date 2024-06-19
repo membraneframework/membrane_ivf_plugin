@@ -81,7 +81,9 @@ defmodule Membrane.IVF.Headers do
     codec_four_cc =
       case stream_format do
         %Membrane.RemoteStream{content_format: VP9} -> "VP90"
+        %VP9{} -> "VP90"
         %Membrane.RemoteStream{content_format: VP8} -> "VP80"
+        %VP8{} -> "VP80"
         _unknown -> "\0\0\0\0"
       end
 
