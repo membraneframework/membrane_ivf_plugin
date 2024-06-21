@@ -92,15 +92,13 @@ defmodule Membrane.IVF.Serializer do
 
   @impl true
   def handle_stream_format(:input, stream_format, _ctx, state) do
-    %State{
-      width: width,
-      height: height,
-      timebase: timebase,
-      frame_count: frame_count
-    } = state
+    {width, height} = get_dimensions(stream_format, state)
 
-    frame_count = if frame_count == :dynamic, do: 0, else: frame_count
-    ivf_header = Headers.create_ivf_header(width, height, timebase, frame_count, stream_format)
+    frame_count = if state.frame_count == :dynamic, do: 0, else: state.frame_count
+
+    ivf_header =
+      Headers.create_ivf_header(width, height, state.timebase, frame_count, stream_format)
+
     {[buffer: {:output, %Buffer{payload: ivf_header}}], state}
   end
 
@@ -125,5 +123,22 @@ defmodule Membrane.IVF.Serializer do
     ]
 
     {actions, state}
+  end
+
+  @spec get_dimensions(RemoteStream.t() | VP8.t() | VP9.t(), State.t()) :: {
+          width :: non_neg_integer(),
+          height :: non_neg_integer()
+        }
+  defp get_dimensions(input_stream_format, state) do
+    case input_stream_format do
+      %RemoteStream{} ->
+        {
+          state.width || raise("Width not provided"),
+          state.height || raise("Height not provided")
+        }
+
+      %{width: width, height: height} ->
+        {width, height}
+    end
   end
 end

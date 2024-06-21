@@ -23,12 +23,12 @@ defmodule Membrane.IVF.Deserializer do
     @type t :: %__MODULE__{
             timebase: Ratio.t(),
             frame_acc: binary(),
-            start_of_stream: boolean()
+            beginning_of_stream: boolean()
           }
 
     defstruct timebase: nil,
               frame_acc: <<>>,
-              start_of_stream: true
+              beginning_of_stream: true
   end
 
   @impl true
@@ -42,7 +42,7 @@ defmodule Membrane.IVF.Deserializer do
   end
 
   @impl true
-  def handle_buffer(:input, buffer, _ctx, %State{start_of_stream: true} = state) do
+  def handle_buffer(:input, buffer, _ctx, %State{beginning_of_stream: true} = state) do
     state = %State{state | frame_acc: state.frame_acc <> buffer.payload}
 
     with {:ok, file_header, rest} <- Headers.parse_ivf_header(state.frame_acc),
@@ -56,7 +56,7 @@ defmodule Membrane.IVF.Deserializer do
       {[stream_format: {:output, stream_format}, buffer: {:output, buffer}],
        %State{
          frame_acc: rest,
-         start_of_stream: false,
+         beginning_of_stream: false,
          timebase: file_header.timebase
        }}
     else
