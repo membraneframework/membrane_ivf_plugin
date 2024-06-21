@@ -44,10 +44,10 @@ defmodule Membrane.IVF.Plugin.MixProject do
       # {:membrane_vp9_format, "~> 0.4.0"},
       {:membrane_vp9_format,
        github: "membraneframework/membrane_vp9_format", branch: "add-fields", override: true},
+      {:membrane_file_plugin, "~> 0.17.0"},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
-      {:credo, ">= 0.0.0", only: :dev, runtime: false},
-      {:membrane_file_plugin, "~> 0.16.0", only: :test}
+      {:credo, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
 

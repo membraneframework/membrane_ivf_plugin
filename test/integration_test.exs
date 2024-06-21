@@ -17,14 +17,13 @@ defmodule Membrane.IVF.IntegrationTest do
     @impl true
     def handle_init(_ctx, options) do
       spec = [
-        child(:serializer, %IVF.Serializer{
-          width: options.input.width,
-          height: options.input.height,
-          rate: 30
-        }),
         child(:file_source, %Membrane.File.Source{location: options.input.path})
         |> child(:deserializer, IVF.Deserializer)
-        |> get_child(:serializer)
+        |> child(:serializer, %IVF.Serializer{
+          width: options.input.width,
+          height: options.input.height,
+          timebase: {1, 30}
+        })
         |> child(:file_sink, %Membrane.File.Sink{location: options.result_file})
       ]
 

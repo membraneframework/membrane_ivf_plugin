@@ -7,8 +7,10 @@ defmodule Membrane.IVF.Serializer do
   use Numbers, overload_operators: true
 
   alias Membrane.IVF.Headers
-  alias Membrane.{Buffer, RemoteStream}
+  alias Membrane.{Buffer, File, IVF, RemoteStream}
   alias Membrane.{VP8, VP9}
+
+  @frame_count_file_position 24
 
   def_options width: [
                 spec: non_neg_integer() | nil,
@@ -83,6 +85,12 @@ defmodule Membrane.IVF.Serializer do
   end
 
   @impl true
+  def handle_playing(_ctx, state) do
+    {[stream_format: {:output, %Membrane.RemoteStream{type: :packetized, content_format: IVF}}],
+     state}
+  end
+
+  @impl true
   def handle_stream_format(:input, stream_format, _ctx, state) do
     %State{
       width: width,
@@ -106,5 +114,16 @@ defmodule Membrane.IVF.Serializer do
 
     {[buffer: {:output, %Buffer{buffer | payload: ivf_frame}}],
      %{state | frames_processed: state.frames_processed + 1}}
+  end
+
+  @impl true
+  def handle_end_of_stream(:input, _ctx, state) do
+    actions = [
+      event: {:output, %File.SeekSinkEvent{position: @frame_count_file_position}},
+      buffer: {:output, %Buffer{payload: <<state.frames_processed::32-little>>}},
+      end_of_stream: :output
+    ]
+
+    {actions, state}
   end
 end

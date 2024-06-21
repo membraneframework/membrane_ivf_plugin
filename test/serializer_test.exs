@@ -29,7 +29,7 @@ defmodule Membrane.IVF.SerializerTest do
           stream_format: %RemoteStream{content_format: VP9, type: :packetized}
         }),
         get_child(:source)
-        |> child(:ivf_serializer, %IVF.Serializer{width: 1080, height: 720, rate: 30})
+        |> child(:ivf_serializer, %IVF.Serializer{width: 1080, height: 720, timebase: {1, 30}})
         |> child(:sink, sink)
       ]
 
@@ -66,15 +66,17 @@ defmodule Membrane.IVF.SerializerTest do
 
     assert_start_of_stream(pipeline, :sink)
 
+    assert_sink_buffer(pipeline, :sink, ivf_file_header_buffer)
     assert_sink_buffer(pipeline, :sink, ivf_buffer)
 
-    <<file_header::binary-size(32), frame_header::binary-size(12), _frame::binary>> =
-      ivf_buffer.payload
+    <<file_header::binary-size(32)>> = ivf_file_header_buffer.payload
+
+    <<frame_header::binary-size(12), _frame::binary>> = ivf_buffer.payload
 
     <<signature::binary-size(4), version::binary-size(2), length_of_header::binary-size(2),
       four_cc::binary-size(4), width::binary-size(2), height::binary-size(2),
       time_base_denominator::binary-size(4), time_base_numerator::binary-size(4),
-      number_of_frames::binary-size(4), _unused::binary-size(4)>> = file_header
+      _number_of_frames::binary-size(4), _unused::binary-size(4)>> = file_header
 
     assert signature == "DKIF"
     assert version == <<0::16>>
@@ -84,7 +86,7 @@ defmodule Membrane.IVF.SerializerTest do
     assert height == <<720::16-little>>
     assert time_base_denominator == <<30::32-little>>
     assert time_base_numerator == <<1::32-little>>
-    assert number_of_frames == <<0::32-little>>
+    # assert number_of_frames == <<0::32-little>>
 
     <<size_of_frame::binary-size(4), timestamp::binary-size(8)>> = frame_header
     assert size_of_frame == <<byte_size(@frame)::32-little>>
@@ -102,6 +104,10 @@ defmodule Membrane.IVF.SerializerTest do
     # x * 1/30 [s] = 10^8/3 * 10^(-9) [s] //*30/s
     # x = 30 * 1/30 * [s/s] = 1
     assert timestamp == <<1::64-little>>
+
+    assert_sink_event(pipeline, :sink, %Membrane.File.SeekSinkEvent{position: 24})
+    assert_sink_buffer(pipeline, :sink, %Buffer{payload: number_of_frames})
+    assert number_of_frames == <<2::32-little>>
 
     assert_end_of_stream(pipeline, :sink)
 

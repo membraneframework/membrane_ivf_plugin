@@ -9,18 +9,14 @@ defmodule Membrane.IVF.Deserializer do
 
   alias Membrane.IVF.Headers
   alias Membrane.IVF.Headers.FrameHeader
-  alias Membrane.{Buffer, Time}
+  alias Membrane.{Buffer, IVF, Time}
   alias Membrane.{VP8, VP9}
 
-  def_input_pad :input, accepted_format: _any
+  def_input_pad :input,
+    accepted_format: %Membrane.RemoteStream{content_format: fmt} when fmt in [IVF, nil]
 
   def_output_pad :output,
-    # %RemoteStream{content_format: format, type: :packetized} when format in [VP9, VP8]
-    accepted_format:
-      any_of(
-        %VP8{},
-        %VP9{}
-      )
+    accepted_format: any_of(VP8, VP9)
 
   defmodule State do
     @moduledoc false
