@@ -46,17 +46,12 @@ defmodule Membrane.IVF.Headers do
   # bytes 4-11   64-bit presentation timestamp
   # bytes 12..   frame data
 
-  # Function firstly calculate
   # calculating ivf timestamp from membrane timestamp(timebase for membrane timestamp is nanosecond, and timebase for ivf is passed in options)
 
   @spec create_ivf_frame_header(integer, number | Ratio.t(), number | Ratio.t()) :: binary
   def create_ivf_frame_header(size, timestamp, timebase) do
     ivf_timestamp = Membrane.Time.divide_by_timebase(timestamp, Membrane.Time.seconds(timebase))
-    # conversion to little-endian binary strings
-    size_le = <<size::32-little>>
-    timestamp_le = <<ivf_timestamp::64-little>>
-
-    size_le <> timestamp_le
+    <<size::32-little, ivf_timestamp::64-little>>
   end
 
   # IVF Header:
@@ -88,29 +83,6 @@ defmodule Membrane.IVF.Headers do
       end
 
     %Ratio{denominator: rate, numerator: scale} = timebase
-
-    # signature = "DKIF"
-    # version = <<0, 0>>
-    # length_of_header = <<32, 0>>
-    # # conversion to little-endian binary strings
-    # width_le = <<width::16-little>>
-    # height_le = <<height::16-little>>
-    # rate_le = <<rate::32-little>>
-    # scale_le = <<scale::32-little>>
-    # # frame_count = <<frame_count::32>>
-    # # field is not used so it is set to 0
-    # unused = <<0::32>>
-
-    # signature <>
-    #   version <>
-    #   length_of_header <>
-    #   codec_four_cc <>
-    #   width_le <>
-    #   height_le <>
-    #   rate_le <>
-    #   scale_le <>
-    #   frame_count <>
-    #   unused
 
     <<@signature, @version::16-little, @header_length::16-little, codec_four_cc::binary-4,
       width::16-little, height::16-little, rate::32-little, scale::32-little,

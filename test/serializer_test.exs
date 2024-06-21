@@ -85,7 +85,6 @@ defmodule Membrane.IVF.SerializerTest do
     assert height == <<720::16-little>>
     assert time_base_denominator == <<30::32-little>>
     assert time_base_numerator == <<1::32-little>>
-    # assert number_of_frames == <<0::32-little>>
 
     <<size_of_frame::binary-size(4), timestamp::binary-size(8)>> = frame_header
     assert size_of_frame == <<byte_size(@frame)::32-little>>
