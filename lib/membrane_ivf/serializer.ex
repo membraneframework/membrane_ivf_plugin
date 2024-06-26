@@ -16,14 +16,14 @@ defmodule Membrane.IVF.Serializer do
                 spec: non_neg_integer() | nil,
                 default: nil,
                 description: """
-                Width of a frame, assumed if not provided with stream format. In case it's not specified in either case the element will crash.
+                Width of a frame, needed if not provided with stream format. If it's not specified either in this option or the stream format, the element will crash.
                 """
               ],
               height: [
                 spec: non_neg_integer() | nil,
                 default: nil,
                 description: """
-                Height of a frame, assumed if not provided with stream format. In case it's not specified in either case the element will crash.
+                Height of a frame, needed if not provided with stream format. If it's not specified either in this option or the stream format, the element will crash.
                 """
               ],
               timebase: [
@@ -92,7 +92,7 @@ defmodule Membrane.IVF.Serializer do
 
   @impl true
   def handle_stream_format(:input, stream_format, _ctx, state) do
-    {width, height} = get_dimensions(stream_format, state)
+    {width, height} = get_frame_dimensions(stream_format, state)
 
     frame_count = if state.frame_count == :dynamic, do: 0, else: state.frame_count
 
@@ -116,20 +116,23 @@ defmodule Membrane.IVF.Serializer do
 
   @impl true
   def handle_end_of_stream(:input, _ctx, state) do
-    actions = [
-      event: {:output, %File.SeekSinkEvent{position: @frame_count_file_position}},
-      buffer: {:output, %Buffer{payload: <<state.frames_processed::32-little>>}},
-      end_of_stream: :output
-    ]
+    actions =
+      if state.frame_count == :dynamic do
+        [
+          event: {:output, %File.SeekSinkEvent{position: @frame_count_file_position}},
+          buffer: {:output, %Buffer{payload: <<state.frames_processed::32-little>>}},
+          end_of_stream: :output
+        ]
+      else
+        [end_of_stream: :output]
+      end
 
     {actions, state}
   end
 
-  @spec get_dimensions(RemoteStream.t() | VP8.t() | VP9.t(), State.t()) :: {
-          width :: non_neg_integer(),
-          height :: non_neg_integer()
-        }
-  defp get_dimensions(input_stream_format, state) do
+  @spec get_frame_dimensions(RemoteStream.t() | VP8.t() | VP9.t(), State.t()) ::
+          {width :: non_neg_integer(), height :: non_neg_integer()}
+  defp get_frame_dimensions(input_stream_format, state) do
     case input_stream_format do
       %RemoteStream{} ->
         {

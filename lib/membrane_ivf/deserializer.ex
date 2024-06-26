@@ -53,12 +53,14 @@ defmodule Membrane.IVF.Deserializer do
           "VP80" -> %VP8{width: file_header.width, height: file_header.height}
         end
 
-      {[stream_format: {:output, stream_format}, buffer: {:output, buffer}],
-       %State{
-         frame_acc: rest,
-         beginning_of_stream: false,
-         timebase: file_header.timebase
-       }}
+      {
+        [stream_format: {:output, stream_format}, buffer: {:output, buffer}],
+        %State{
+          frame_acc: rest,
+          beginning_of_stream: false,
+          timebase: file_header.timebase
+        }
+      }
     else
       {:error, :too_short} ->
         {[], state}
