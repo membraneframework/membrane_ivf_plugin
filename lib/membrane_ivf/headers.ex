@@ -13,8 +13,8 @@ defmodule Membrane.IVF.Headers do
     """
     @type t :: %__MODULE__{
             four_cc: String.t(),
-            width: non_neg_integer(),
-            height: non_neg_integer(),
+            width: pos_integer(),
+            height: pos_integer(),
             timebase: Ratio.t(),
             frame_count: non_neg_integer()
           }
@@ -65,13 +65,8 @@ defmodule Membrane.IVF.Headers do
   # bytes 20-23  time base numerator (scale)
   # bytes 24-27  number of frames in file
   # bytes 28-31  unused
-  @spec create_ivf_header(
-          non_neg_integer(),
-          non_neg_integer(),
-          Ratio.t(),
-          non_neg_integer(),
-          any()
-        ) :: binary()
+  @spec create_ivf_header(pos_integer(), pos_integer(), Ratio.t(), non_neg_integer(), any()) ::
+          binary()
   def create_ivf_header(width, height, timebase, frame_count, stream_format) do
     codec_four_cc =
       case stream_format do

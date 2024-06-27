@@ -11,29 +11,6 @@ defmodule Membrane.IVF.IntegrationTest do
   @output_file_vp8 "output_vp8.ivf"
   @output_file_vp9 "output_vp9.ivf"
 
-  defmodule TestPipeline do
-    use Membrane.Pipeline
-
-    @impl true
-    def handle_init(_ctx, options) do
-      spec = [
-        child(:file_source, %Membrane.File.Source{location: options.input_path})
-        |> child(:deserializer, IVF.Deserializer)
-        |> child(:serializer, %IVF.Serializer{
-          timebase: {1, 30}
-        })
-        |> child(:file_sink, %Membrane.File.Sink{location: options.output_path})
-      ]
-
-      {[spec: spec], %{}}
-    end
-
-    @impl true
-    def handle_child_notification(_notification, _child, _ctx, state) do
-      {[], state}
-    end
-  end
-
   describe "deserializing ivf and serializing back for" do
     @describetag :tmp_dir
     test "VP8", %{tmp_dir: tmp_dir} do

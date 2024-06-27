@@ -38,12 +38,8 @@ defmodule Membrane.IVF.Plugin.MixProject do
   defp deps do
     [
       {:membrane_core, "~> 1.0"},
-      # {:membrane_vp8_format, "~> 0.4.0"},
-      {:membrane_vp8_format,
-       github: "membraneframework/membrane_vp8_format", branch: "add-fields", override: true},
-      # {:membrane_vp9_format, "~> 0.4.0"},
-      {:membrane_vp9_format,
-       github: "membraneframework/membrane_vp9_format", branch: "add-fields", override: true},
+      {:membrane_vp8_format, "~> 0.5.0"},
+      {:membrane_vp9_format, "~> 0.5.0"},
       {:membrane_file_plugin, "~> 0.17.0"},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},

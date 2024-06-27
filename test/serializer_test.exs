@@ -22,15 +22,13 @@ defmodule Membrane.IVF.SerializerTest do
           do: %Membrane.File.Sink{location: options.result_file},
           else: Testing.Sink
 
-      spec = [
+      spec =
         child(:source, %Testing.Source{
           output: Testing.Source.output_from_buffers(options.buffers),
           stream_format: %RemoteStream{content_format: VP9, type: :packetized}
-        }),
-        get_child(:source)
+        })
         |> child(:ivf_serializer, %IVF.Serializer{width: 1080, height: 720, timebase: {1, 30}})
         |> child(:sink, sink)
-      ]
 
       {[spec: spec], %{}}
     end
@@ -114,7 +112,7 @@ defmodule Membrane.IVF.SerializerTest do
 
   @tag :tmp_dir
   test "serialize real vp9 buffers", %{tmp_dir: tmp_dir} do
-    buffers = File.read!(Path.join(@fixtures_dir, "capture.dump")) |> :erlang.binary_to_term()
+    buffers = Path.join(@fixtures_dir, "capture.dump") |> File.read!() |> :erlang.binary_to_term()
 
     pipeline =
       [

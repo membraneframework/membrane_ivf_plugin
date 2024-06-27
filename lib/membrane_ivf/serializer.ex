@@ -27,7 +27,7 @@ defmodule Membrane.IVF.Serializer do
                 """
               ],
               timebase: [
-                spec: {non_neg_integer(), pos_integer()},
+                spec: {pos_integer(), pos_integer()},
                 default: {1, 1_000_000_000},
                 description: """
                 Timebase for the timestamps added to the frames
@@ -38,7 +38,7 @@ defmodule Membrane.IVF.Serializer do
                 default: :dynamic,
                 description: """
                 Number of frames in the stream. If set to `:dynamic` the frames will be counted and
-                a `Membrane.File.SeekSinkEvent` will be sent on end of stream to insert this value in
+                a `Membrane.File.SeekSinkEvent` will be sent at the end of the stream to insert this value in
                 the file header. In that case the element MUST be used along with `Membrane.File.Sink`
                 or any other sink that can handle `Membrane.File.SeekSinkEvent`.
                 """
