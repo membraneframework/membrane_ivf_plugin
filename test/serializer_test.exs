@@ -129,8 +129,8 @@ defmodule Membrane.IVF.SerializerTest do
 
     assert_end_of_stream(pipeline, :sink)
 
-    assert File.read!(Path.join(tmp_dir, @result_file)) ==
-             File.read!(Path.join(@fixtures_dir, @input_file))
+    assert Path.join(tmp_dir, @result_file) |> File.read!() ==
+             Path.join(@fixtures_dir, @input_file) |> File.read!()
 
     Testing.Pipeline.terminate(pipeline)
   end
