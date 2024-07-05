@@ -1,17 +1,16 @@
-defmodule Membrane.Element.IVF.SerializerTest do
+defmodule Membrane.IVF.SerializerTest do
   use ExUnit.Case
   use Numbers, overload_operators: true
 
   import Membrane.Testing.Assertions
 
   alias Membrane.{Buffer, RemoteStream, Testing}
-  alias Membrane.Element.IVF
+  alias Membrane.IVF
   alias Membrane.VP9
 
   @fixtures_dir "./test/fixtures/"
-  @results_dir "./test/results/"
   @input_file "input_vp9.ivf"
-  @result_file "result_vp9.ivf"
+  @result_file "output_vp9.ivf"
 
   defmodule TestPipeline do
     use Membrane.Pipeline
@@ -23,15 +22,13 @@ defmodule Membrane.Element.IVF.SerializerTest do
           do: %Membrane.File.Sink{location: options.result_file},
           else: Testing.Sink
 
-      spec = [
+      spec =
         child(:source, %Testing.Source{
           output: Testing.Source.output_from_buffers(options.buffers),
           stream_format: %RemoteStream{content_format: VP9, type: :packetized}
-        }),
-        get_child(:source)
-        |> child(:ivf_serializer, %IVF.Serializer{width: 1080, height: 720, rate: 30})
+        })
+        |> child(:ivf_serializer, %IVF.Serializer{width: 1080, height: 720, timebase: {1, 30}})
         |> child(:sink, sink)
-      ]
 
       {[spec: spec], %{}}
     end
@@ -66,15 +63,17 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
     assert_start_of_stream(pipeline, :sink)
 
+    assert_sink_buffer(pipeline, :sink, ivf_file_header_buffer)
     assert_sink_buffer(pipeline, :sink, ivf_buffer)
 
-    <<file_header::binary-size(32), frame_header::binary-size(12), _frame::binary>> =
-      ivf_buffer.payload
+    <<file_header::binary-size(32)>> = ivf_file_header_buffer.payload
+
+    <<frame_header::binary-size(12), _frame::binary>> = ivf_buffer.payload
 
     <<signature::binary-size(4), version::binary-size(2), length_of_header::binary-size(2),
       four_cc::binary-size(4), width::binary-size(2), height::binary-size(2),
       time_base_denominator::binary-size(4), time_base_numerator::binary-size(4),
-      number_of_frames::binary-size(4), _unused::binary-size(4)>> = file_header
+      _number_of_frames::binary-size(4), _unused::binary-size(4)>> = file_header
 
     assert signature == "DKIF"
     assert version == <<0::16>>
@@ -84,7 +83,6 @@ defmodule Membrane.Element.IVF.SerializerTest do
     assert height == <<720::16-little>>
     assert time_base_denominator == <<30::32-little>>
     assert time_base_numerator == <<1::32-little>>
-    assert number_of_frames == <<0::32-little>>
 
     <<size_of_frame::binary-size(4), timestamp::binary-size(8)>> = frame_header
     assert size_of_frame == <<byte_size(@frame)::32-little>>
@@ -103,20 +101,25 @@ defmodule Membrane.Element.IVF.SerializerTest do
     # x = 30 * 1/30 * [s/s] = 1
     assert timestamp == <<1::64-little>>
 
+    assert_sink_event(pipeline, :sink, %Membrane.File.SeekSinkEvent{position: 24})
+    assert_sink_buffer(pipeline, :sink, %Buffer{payload: number_of_frames})
+    assert number_of_frames == <<2::32-little>>
+
     assert_end_of_stream(pipeline, :sink)
 
     Testing.Pipeline.terminate(pipeline)
   end
 
-  test "serialize real vp9 buffers" do
-    buffers = File.read!(@fixtures_dir <> "capture.dump") |> :erlang.binary_to_term()
+  @tag :tmp_dir
+  test "serialize real vp9 buffers", %{tmp_dir: tmp_dir} do
+    buffers = Path.join(@fixtures_dir, "capture.dump") |> File.read!() |> :erlang.binary_to_term()
 
     pipeline =
       [
         module: TestPipeline,
         custom_args: %{
           to_file?: true,
-          result_file: @results_dir <> @result_file,
+          result_file: Path.join(tmp_dir, @result_file),
           buffers: buffers
         }
       ]
@@ -126,8 +129,8 @@ defmodule Membrane.Element.IVF.SerializerTest do
 
     assert_end_of_stream(pipeline, :sink)
 
-    assert File.read!(@results_dir <> @result_file) ==
-             File.read!(@fixtures_dir <> @input_file)
+    assert Path.join(tmp_dir, @result_file) |> File.read!() ==
+             Path.join(@fixtures_dir, @input_file) |> File.read!()
 
     Testing.Pipeline.terminate(pipeline)
   end

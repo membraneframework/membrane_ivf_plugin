@@ -1,73 +1,45 @@
-defmodule Membrane.Element.IVF.IntegrationTest do
+defmodule Membrane.IVF.IntegrationTest do
   use ExUnit.Case
 
   import Membrane.Testing.Assertions
+  import Membrane.ChildrenSpec
 
-  alias Membrane.Element.IVF
-  alias Membrane.{Testing}
+  alias Membrane.{IVF, Testing}
 
-  @input_video_vp8 %{path: "./test/fixtures/input_vp8.ivf", width: 1080, height: 720}
-  @input_video_vp9 %{path: "./test/fixtures/input_vp9.ivf", width: 1080, height: 720}
-  @results_dir "./test/results/"
-  @result_file_vp8 "result_vp8.ivf"
-  @result_file_vp9 "result_vp9.ivf"
+  @input_path_vp8 "./test/fixtures/input_vp8.ivf"
+  @input_path_vp9 "./test/fixtures/input_vp9.ivf"
+  @output_file_vp8 "output_vp8.ivf"
+  @output_file_vp9 "output_vp9.ivf"
 
-  defmodule TestPipeline do
-    use Membrane.Pipeline
-
-    @impl true
-    def handle_init(_ctx, options) do
-      spec = [
-        child(:serializer, %IVF.Serializer{
-          width: options.input.width,
-          height: options.input.height,
-          rate: 30
-        }),
-        child(:file_source, %Membrane.File.Source{location: options.input.path})
-        |> child(:deserializer, IVF.Deserializer)
-        |> get_child(:serializer)
-        |> child(:file_sink, %Membrane.File.Sink{location: options.result_file})
-      ]
-
-      {[spec: spec], %{}}
+  describe "deserializing ivf and serializing back for" do
+    @describetag :tmp_dir
+    test "VP8", %{tmp_dir: tmp_dir} do
+      test_stream(@input_path_vp8, @output_file_vp8, tmp_dir)
     end
 
-    @impl true
-    def handle_child_notification(_notification, _child, _ctx, state) do
-      {[], state}
+    test "VP9", %{tmp_dir: tmp_dir} do
+      test_stream(@input_path_vp9, @output_file_vp9, tmp_dir)
     end
   end
 
-  test "deserializing vp8 ivf and serializing back" do
-    test_stream(@input_video_vp8, @result_file_vp8)
-  end
-
-  test "deserializing vp9 ivf and serializing back" do
-    test_stream(@input_video_vp9, @result_file_vp9)
-  end
-
-  defp test_stream(input, result) do
-    if !File.exists?(@results_dir) do
-      File.mkdir!(@results_dir)
-    end
-
-    result_file = Path.join(@results_dir, result)
+  defp test_stream(input_path, output_file, tmp_dir) do
+    output_path = Path.join(tmp_dir, output_file)
 
     pipeline =
-      [
-        module: TestPipeline,
-        custom_args: %{
-          input: input,
-          result_file: result_file
-        }
-      ]
-      |> Testing.Pipeline.start_link_supervised!()
+      Testing.Pipeline.start_link_supervised!(
+        spec:
+          child(:file_source, %Membrane.File.Source{location: input_path})
+          |> child(:deserializer, IVF.Deserializer)
+          |> child(:serializer, %IVF.Serializer{
+            timebase: {1, 30}
+          })
+          |> child(:file_sink, %Membrane.File.Sink{location: output_path})
+      )
 
     assert_end_of_stream(pipeline, :file_sink)
 
     Testing.Pipeline.terminate(pipeline)
 
-    assert File.read!(input.path) ==
-             File.read!(result_file)
+    assert File.read!(input_path) == File.read!(output_path)
   end
 end
