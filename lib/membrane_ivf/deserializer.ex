@@ -7,16 +7,16 @@ defmodule Membrane.IVF.Deserializer do
   use Membrane.Filter
   use Numbers, overload_operators: true
 
+  alias Membrane.{AV1, RemoteStream, VP8, VP9}
+  alias Membrane.{Buffer, IVF, Time}
   alias Membrane.IVF.Headers
   alias Membrane.IVF.Headers.FrameHeader
-  alias Membrane.{Buffer, IVF, Time}
-  alias Membrane.{VP8, VP9}
 
   def_input_pad :input,
     accepted_format: %Membrane.RemoteStream{content_format: fmt} when fmt in [IVF, nil]
 
   def_output_pad :output,
-    accepted_format: any_of(VP8, VP9)
+    accepted_format: any_of(AV1, VP8, VP9)
 
   defmodule State do
     @moduledoc false
@@ -51,6 +51,8 @@ defmodule Membrane.IVF.Deserializer do
         case file_header.four_cc do
           "VP90" -> %VP9{width: file_header.width, height: file_header.height}
           "VP80" -> %VP8{width: file_header.width, height: file_header.height}
+          "AV01" -> %AV1{width: file_header.width, height: file_header.height}
+          _other -> %RemoteStream{type: :packetized}
         end
 
       {
@@ -70,7 +72,8 @@ defmodule Membrane.IVF.Deserializer do
     end
   end
 
-  def handle_buffer(:input, buffer, _ctx, state) do
+  @impl true
+  def handle_buffer(:input, buffer, _ctx, %State{} = state) do
     state = %State{state | frame_acc: state.frame_acc <> buffer.payload}
 
     case flush_acc(state, []) do
@@ -82,7 +85,7 @@ defmodule Membrane.IVF.Deserializer do
     end
   end
 
-  defp flush_acc(state, buffers) do
+  defp flush_acc(%State{} = state, buffers) do
     case get_buffer(state.frame_acc, state.timebase) do
       {:ok, buffer, rest} -> flush_acc(%State{state | frame_acc: rest}, [buffer | buffers])
       {:error, :too_short} when buffers != [] -> {:ok, Enum.reverse(buffers), state}

@@ -1,7 +1,7 @@
 defmodule Membrane.IVF.Headers do
   @moduledoc false
 
-  alias Membrane.{VP8, VP9}
+  alias Membrane.{AV1, VP8, VP9}
 
   @signature "DKIF"
   @version 0
@@ -74,6 +74,8 @@ defmodule Membrane.IVF.Headers do
         %VP9{} -> "VP90"
         %Membrane.RemoteStream{content_format: VP8} -> "VP80"
         %VP8{} -> "VP80"
+        %Membrane.RemoteStream{content_format: AV1} -> "AV01"
+        %AV1{} -> "AV01"
         _unknown -> "\0\0\0\0"
       end
 

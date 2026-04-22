@@ -6,9 +6,9 @@ defmodule Membrane.IVF.Serializer do
   use Membrane.Filter
   use Numbers, overload_operators: true
 
-  alias Membrane.IVF.Headers
+  alias Membrane.{AV1, VP8, VP9}
   alias Membrane.{Buffer, File, IVF, RemoteStream}
-  alias Membrane.{VP8, VP9}
+  alias Membrane.IVF.Headers
 
   @frame_count_file_position 24
 
@@ -47,7 +47,8 @@ defmodule Membrane.IVF.Serializer do
   def_input_pad :input,
     accepted_format:
       any_of(
-        %RemoteStream{content_format: format, type: :packetized} when format in [VP9, VP8],
+        %RemoteStream{content_format: format, type: :packetized} when format in [AV1, VP9, VP8],
+        AV1,
         VP8,
         VP9
       )
@@ -103,9 +104,7 @@ defmodule Membrane.IVF.Serializer do
   end
 
   @impl true
-  def handle_buffer(:input, buffer, _ctx, state) do
-    %Buffer{payload: frame, pts: timestamp} = buffer
-
+  def handle_buffer(:input, %Buffer{payload: frame, pts: timestamp} = buffer, _ctx, state) do
     ivf_frame =
       Headers.create_ivf_frame_header(byte_size(frame), timestamp, state.timebase) <>
         frame
