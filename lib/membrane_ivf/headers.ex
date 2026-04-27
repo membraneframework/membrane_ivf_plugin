@@ -1,6 +1,8 @@
 defmodule Membrane.IVF.Headers do
   @moduledoc false
 
+  require Membrane.Logger
+
   alias Membrane.{AV1, VP8, VP9}
 
   @signature "DKIF"
@@ -70,13 +72,30 @@ defmodule Membrane.IVF.Headers do
   def create_ivf_header(width, height, timebase, frame_count, stream_format) do
     codec_four_cc =
       case stream_format do
-        %Membrane.RemoteStream{content_format: VP9} -> "VP90"
-        %VP9{} -> "VP90"
-        %Membrane.RemoteStream{content_format: VP8} -> "VP80"
-        %VP8{} -> "VP80"
-        %Membrane.RemoteStream{content_format: AV1} -> "AV01"
-        %AV1{} -> "AV01"
-        _unknown -> "\0\0\0\0"
+        %Membrane.RemoteStream{content_format: VP9} ->
+          "VP90"
+
+        %VP9{} ->
+          "VP90"
+
+        %Membrane.RemoteStream{content_format: VP8} ->
+          "VP80"
+
+        %VP8{} ->
+          "VP80"
+
+        %Membrane.RemoteStream{content_format: AV1} ->
+          "AV01"
+
+        %AV1{} ->
+          "AV01"
+
+        _unknown ->
+          Membrane.Logger.warning(
+            "FourCC of stream format #{inspect(stream_format)} unknown, using \\0\\0\\0\\0"
+          )
+
+          "\0\0\0\0"
       end
 
     %Ratio{denominator: rate, numerator: scale} = timebase

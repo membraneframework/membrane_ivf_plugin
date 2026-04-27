@@ -7,6 +7,8 @@ defmodule Membrane.IVF.Deserializer do
   use Membrane.Filter
   use Numbers, overload_operators: true
 
+  require Membrane.Logger
+
   alias Membrane.{AV1, RemoteStream, VP8, VP9}
   alias Membrane.{Buffer, IVF, Time}
   alias Membrane.IVF.Headers
@@ -49,10 +51,18 @@ defmodule Membrane.IVF.Deserializer do
          {:ok, buffer, rest} <- get_buffer(rest, file_header.timebase) do
       stream_format =
         case file_header.four_cc do
-          "VP90" -> %VP9{width: file_header.width, height: file_header.height}
-          "VP80" -> %VP8{width: file_header.width, height: file_header.height}
-          "AV01" -> %AV1{width: file_header.width, height: file_header.height}
-          _other -> %RemoteStream{type: :packetized}
+          "VP90" ->
+            %VP9{width: file_header.width, height: file_header.height}
+
+          "VP80" ->
+            %VP8{width: file_header.width, height: file_header.height}
+
+          "AV01" ->
+            %AV1{width: file_header.width, height: file_header.height}
+
+          _other ->
+            Membrane.Logger.warning("Unrecognized FourCC #{inspect(file_header.four_cc)}")
+            %RemoteStream{type: :packetized}
         end
 
       {
