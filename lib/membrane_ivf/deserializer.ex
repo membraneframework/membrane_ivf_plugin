@@ -13,6 +13,7 @@ defmodule Membrane.IVF.Deserializer do
   alias Membrane.{Buffer, IVF, Time}
   alias Membrane.IVF.Headers
   alias Membrane.IVF.Headers.FrameHeader
+  alias Membrane.{VP8, VP9}
 
   def_input_pad :input,
     accepted_format: %Membrane.RemoteStream{content_format: fmt} when fmt in [IVF, nil]
@@ -83,7 +84,7 @@ defmodule Membrane.IVF.Deserializer do
   end
 
   @impl true
-  def handle_buffer(:input, buffer, _ctx, %State{} = state) do
+  def handle_buffer(:input, %Buffer{} = buffer, _ctx, %State{} = state) do
     state = %State{state | frame_acc: state.frame_acc <> buffer.payload}
 
     case flush_acc(state, []) do

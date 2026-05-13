@@ -104,7 +104,12 @@ defmodule Membrane.IVF.Serializer do
   end
 
   @impl true
-  def handle_buffer(:input, %Buffer{payload: frame, pts: timestamp} = buffer, _ctx, state) do
+  def handle_buffer(
+        :input,
+        %Buffer{payload: frame, pts: timestamp} = buffer,
+        _ctx,
+        %State{} = state
+      ) do
     ivf_frame =
       Headers.create_ivf_frame_header(byte_size(frame), timestamp, state.timebase) <>
         frame
