@@ -43,7 +43,7 @@ defmodule Membrane.IVF.Plugin.MixProject do
       {:membrane_vp9_format, "~> 0.5.0"},
       {:membrane_av1_format, "~> 0.2.0"},
       {:membrane_file_plugin, "~> 0.17.0"},
-      {:ex_doc, "~> 0.40", only: :dev, runtime: false},
+      {:ex_doc, ">= 0.40.0", only: :dev, runtime: false},
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
       {:credo, ">= 0.0.0", only: :dev, runtime: false}
     ]
