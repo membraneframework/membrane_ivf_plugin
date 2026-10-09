@@ -107,7 +107,7 @@ defmodule Membrane.IVF.Deserializer do
   defp get_buffer(payload, timebase) do
     with {:ok, %FrameHeader{size_of_frame: size_of_frame, timestamp: timestamp}, rest} <-
            Headers.parse_ivf_frame_header(payload),
-         <<frame::binary-size(size_of_frame), rest::binary>> <- rest do
+         <<frame::binary-size(^size_of_frame), rest::binary>> <- rest do
       timestamp = Time.seconds(timestamp * timebase)
       {:ok, %Buffer{pts: timestamp, payload: frame}, rest}
     else
